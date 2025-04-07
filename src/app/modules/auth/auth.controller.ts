@@ -58,8 +58,9 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   }
 
   const token = authorizationHeader.split(' ')[1]; // Extract the token part
-
+  // console.log(token, 'token----------------->');
   const { ...resetData } = req.body;
+  // console.log(req.body, 'req.body----------------->');
   const result = await AuthService.resetPasswordToDB(token, resetData);
 
   sendResponse(res, {

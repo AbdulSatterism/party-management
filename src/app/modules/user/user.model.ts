@@ -10,44 +10,72 @@ const userSchema = new Schema<IUser, UserModal>(
   {
     name: {
       type: String,
-      default: '',
+      required: true,
     },
     email: {
       type: String,
       required: true,
       unique: true,
-    },
-    phone: {
-      type: String,
-      default: '',
+      lowercase: true,
     },
     password: {
       type: String,
       required: true,
-      select: false,
+      select: 0,
+      minlength: 8,
+    },
+    phone: {
+      type: String,
+      required: true,
     },
     role: {
       type: String,
-      enum: ['ADMIN', 'USER', 'OWNER'],
       default: 'USER',
-    },
-    gender: {
-      type: String,
-      enum: ['MALE', 'FEMALE', 'OTHERS'],
-      required: false,
     },
     image: {
       type: String,
       default: '/default/user.jpg',
     },
-    dob: {
+    gender: {
       type: String,
-      default: '',
+      enum: ['MALE', 'FEMALE', 'OTHERS'],
+    },
+    age: {
+      type: Number,
+    },
+    height: {
+      type: Number,
+    },
+    weight: {
+      type: Number,
+    },
+    country: {
+      type: String,
+    },
+    fitnessLevel: {
+      type: String,
+      enum: ['BASIC', 'INTERMEDIATE', 'ADVANCED'],
+    },
+    injury: {
+      type: String,
+    },
+    payment: {
+      type: Boolean,
+      default: false,
+    },
+    subscription: {
+      type: Boolean,
+      default: false,
     },
     isDeleted: {
       type: Boolean,
       default: false,
     },
+    verified: {
+      type: Boolean,
+      default: false,
+    },
+
     authentication: {
       type: {
         isResetPassword: {
@@ -63,11 +91,7 @@ const userSchema = new Schema<IUser, UserModal>(
           default: null,
         },
       },
-      select: false,
-    },
-    verified: {
-      type: Boolean,
-      default: false,
+      select: 0,
     },
   },
   { timestamps: true },

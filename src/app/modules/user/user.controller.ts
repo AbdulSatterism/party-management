@@ -5,19 +5,20 @@ import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { UserService } from './user.service';
+import getFilePath from '../../../shared/getFilePath';
+import fs from 'fs';
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const value = {
     ...req.body,
   };
 
-  const result = await UserService.createUserFromDb(value);
+  await UserService.createUserFromDb(value);
 
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
-    message: 'user created successfully',
-    data: result,
+    message: 'Please check your email to verify your account.',
   });
 });
 

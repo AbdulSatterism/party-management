@@ -15,7 +15,6 @@ import {
   IVerifyEmail,
 } from '../../../types/auth';
 // import cryptoToken from '../../../util/cryptoToken';
-
 import generateOTP from '../../../util/generateOTP';
 
 import { User } from '../user/user.model';
@@ -30,11 +29,11 @@ const loginUserFromDB = async (payload: ILoginData) => {
     throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
 
-  // check user status
-  if (isExistUser.isDeleted) {
+  //check verified and status
+  if (!isExistUser.verified) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      'your account has been deleted😒.',
+      'Please verify your account, then try to login again',
     );
   }
 
@@ -199,7 +198,7 @@ const resetPasswordToDB = async (
   if (!isExistUser?.authentication?.isResetPassword) {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
-      "You don't have permission to change the password. Please 'Forgot Password'",
+      "You don't have permission to change the password. Please click again to 'Forgot Password'",
     );
   }
 
