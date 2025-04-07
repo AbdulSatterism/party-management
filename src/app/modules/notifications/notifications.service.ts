@@ -1,25 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from 'http-status-codes';
-import ApiError from '../../../errors/ApiError';
 import { User } from '../user/user.model';
 import { Notification } from './notifications.model';
 import mongoose from 'mongoose';
+import AppError from '../../errors/AppError';
 
-// const getAllNotification = async (user: JwtPayload) => {
-//   const result = await Notification.find({ receiver: user.id });
-
-//   const unredCount = await Notification.countDocuments({
-//     receiver: user.id,
-//     read: false,
-//   });
-
-//   const data = {
-//     result,
-//     unredCount,
-//   };
-
-//   return data;
-// };
 const getAllNotification = async () => {
   const result = await Notification.find();
 
@@ -50,7 +35,7 @@ const getUserNotification = async (userId: string) => {
   const existUser = await User.findById(userId);
 
   if (!existUser) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'this user not found');
+    throw new AppError(StatusCodes.NOT_FOUND, 'this user not found');
   }
   const userIdObjectId = new mongoose.Types.ObjectId(userId);
   // Aggregation pipeline
@@ -109,59 +94,6 @@ const getUserNotification = async (userId: string) => {
 
   return notifications;
 };
-
-// const readNotification = async (user: JwtPayload) => {
-//   const result = await Notification.updateMany(
-//     { receiver: user.id },
-//     { read: true },
-//   );
-//   return result;
-// };
-
-// const adminNotification = async (query: Record<string, unknown>) => {
-//   const { page, limit } = query;
-
-//   // Apply filter conditions
-
-//   const pages = parseInt(page as string) || 1;
-//   const size = parseInt(limit as string) || 10;
-//   const skip = (pages - 1) * size;
-
-//   // Set default sort order to show new data first
-
-//   const result = await Notification.find()
-
-//     .sort({ createdAt: -1 })
-//     .skip(skip)
-//     .limit(size)
-//     .lean();
-//   const total = await Notification.countDocuments();
-//   const unread = await Notification.countDocuments({ read: false });
-
-//   const data: any = {
-//     result,
-//     meta: {
-//       page: pages,
-//       limit: size,
-//       total,
-//       unread,
-//     },
-//   };
-//   return data;
-// };
-
-// const adminReadNotification = async () => {
-//   const result = await Notification.updateMany(
-//     { type: 'ADMIN' },
-//     { read: true },
-//   );
-//   return result;
-// };
-
-// const deleteAllNotifications = async () => {
-//   const result = await Notification.deleteMany({});
-//   return result;
-// };
 
 export const NotificationService = {
   getAllNotification,

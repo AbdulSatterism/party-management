@@ -1,9 +1,9 @@
 import cors from 'cors';
 import express, { Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import router from './routes';
 import { Morgan } from './shared/morgen';
+import notFoundRoute from './app/middlewares/notFoundRoute';
 
 const app = express();
 
@@ -39,17 +39,7 @@ app.get('/', (req: Request, res: Response) => {
 app.use(globalErrorHandler);
 
 //*handle not found route;
-app.use((req, res) => {
-  res.status(StatusCodes.NOT_FOUND).json({
-    success: false,
-    message: 'Not found',
-    errorMessages: [
-      {
-        path: req.originalUrl,
-        message: 'API NOT FOUND',
-      },
-    ],
-  });
-});
+
+app.use(notFoundRoute);
 
 export default app;

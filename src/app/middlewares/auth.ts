@@ -2,8 +2,8 @@ import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { Secret } from 'jsonwebtoken';
 import config from '../../config';
-import ApiError from '../../errors/ApiError';
 import { jwtHelper } from '../../helpers/jwtHelper';
+import AppError from '../errors/AppError';
 
 const auth =
   (...roles: string[]) =>
@@ -11,7 +11,7 @@ const auth =
     try {
       const tokenWithBearer = req.headers.authorization;
       if (!tokenWithBearer) {
-        throw new ApiError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
+        throw new AppError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
       }
 
       if (tokenWithBearer && tokenWithBearer.startsWith('Bearer')) {
@@ -27,7 +27,7 @@ const auth =
 
         //guard user
         if (roles.length && !roles.includes(verifyUser.role)) {
-          throw new ApiError(
+          throw new AppError(
             StatusCodes.FORBIDDEN,
             "You don't have permission to access this api",
           );

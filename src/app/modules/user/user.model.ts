@@ -3,8 +3,8 @@ import bcrypt from 'bcrypt';
 import { StatusCodes } from 'http-status-codes';
 import { model, Schema } from 'mongoose';
 import config from '../../../config';
-import ApiError from '../../../errors/ApiError';
 import { IUser, UserModal } from './user.interface';
+import AppError from '../../errors/AppError';
 
 const userSchema = new Schema<IUser, UserModal>(
   {
@@ -103,7 +103,7 @@ userSchema.pre('save', async function (next) {
   //check user
   const isExist = await User.findOne({ email: this.email });
   if (isExist) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Email already used');
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Email already used');
   }
 
   //password hash

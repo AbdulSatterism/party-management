@@ -4,18 +4,18 @@
 import { StatusCodes } from 'http-status-codes';
 import { JwtPayload } from 'jsonwebtoken';
 import { USER_ROLES } from '../../../enums/user';
-import ApiError from '../../../errors/ApiError';
 
 import { IUser } from './user.interface';
 import { User } from './user.model';
 import unlinkFile from '../../../shared/unlinkFile';
+import AppError from '../../errors/AppError';
 
 const createUserFromDb = async (payload: IUser) => {
   payload.role = USER_ROLES.USER;
   const result = await User.create(payload);
 
   if (!result) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create user');
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create user');
   }
 
   return result;
@@ -49,7 +49,7 @@ const getUserProfileFromDB = async (
   const { id } = user;
   const isExistUser = await User.findById(id);
   if (!isExistUser) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+    throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
 
   return isExistUser;
@@ -63,11 +63,11 @@ const updateProfileToDB = async (
   const isExistUser = await User.isExistUserById(id);
 
   if (!isExistUser) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+    throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
 
   if (!isExistUser) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'Blog not found');
+    throw new AppError(StatusCodes.NOT_FOUND, 'Blog not found');
   }
 
   if (payload.image && isExistUser.image) {

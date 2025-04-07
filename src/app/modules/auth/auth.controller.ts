@@ -4,7 +4,7 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { AuthService } from './auth.service';
 import config from '../../../config';
-import ApiError from '../../../errors/ApiError';
+import AppError from '../../errors/AppError';
 
 const verifyEmail = catchAsync(async (req: Request, res: Response) => {
   const { ...verifyData } = req.body;
@@ -51,7 +51,7 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   const authorizationHeader = req.headers.authorization;
 
   if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
-    throw new ApiError(
+    throw new AppError(
       StatusCodes.UNAUTHORIZED,
       'Authorization header is missing or invalid',
     );

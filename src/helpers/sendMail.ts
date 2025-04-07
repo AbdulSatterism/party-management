@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
-import ApiError from '../errors/ApiError';
 import { StatusCodes } from 'http-status-codes';
 import config from '../config';
+import AppError from '../app/errors/AppError';
 
 export async function sendEmail(email: string, subject: string, text: string) {
   try {
@@ -16,7 +16,7 @@ export async function sendEmail(email: string, subject: string, text: string) {
     });
 
     const info = await transporter.sendMail({
-      from: `"Barbar-salon" ${config.email.from}`, // Sender address
+      from: `"abdul-satter" ${config.email.from}`, // Sender address
       to: email, // Recipient's email
       subject: `${subject}`, // Subject line
       text: text, // Plain text version
@@ -119,7 +119,7 @@ export async function sendEmail(email: string, subject: string, text: string) {
 
     return info;
   } catch (error) {
-    throw new ApiError(
+    throw new AppError(
       StatusCodes.INTERNAL_SERVER_ERROR,
       'Error sending email',
     );
