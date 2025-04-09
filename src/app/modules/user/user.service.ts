@@ -23,7 +23,7 @@ const createUserFromDb = async (payload: IUser) => {
 
   const otp = generateOTP();
   const emailValues = {
-    name: result.name,
+    name: result.name || 'party',
     otp,
     email: result.email,
   };
@@ -109,6 +109,11 @@ const updateProfileToDB = async (
 
 const getSingleUser = async (id: string): Promise<IUser | null> => {
   const result = await User.findById(id);
+
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
   return result;
 };
 

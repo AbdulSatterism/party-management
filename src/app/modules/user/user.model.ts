@@ -10,7 +10,7 @@ const userSchema = new Schema<IUser, UserModal>(
   {
     name: {
       type: String,
-      required: true,
+      required: false,
     },
     email: {
       type: String,
@@ -26,46 +26,16 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     phone: {
       type: String,
-      required: true,
+      required: false,
     },
     role: {
       type: String,
+      required: false,
       default: 'USER',
     },
     image: {
       type: String,
-      default: '/default/user.jpg',
-    },
-    gender: {
-      type: String,
-      enum: ['MALE', 'FEMALE', 'OTHERS'],
-    },
-    age: {
-      type: Number,
-    },
-    height: {
-      type: Number,
-    },
-    weight: {
-      type: Number,
-    },
-    country: {
-      type: String,
-    },
-    fitnessLevel: {
-      type: String,
-      enum: ['BASIC', 'INTERMEDIATE', 'ADVANCED'],
-    },
-    injury: {
-      type: String,
-    },
-    payment: {
-      type: Boolean,
-      default: false,
-    },
-    subscription: {
-      type: Boolean,
-      default: false,
+      default: '',
     },
     isDeleted: {
       type: Boolean,
