@@ -12,7 +12,7 @@ const updateUserProfileSchema = z.object({
     name: z.string().optional(),
     phone: z.string().optional(),
     image: z.string().optional(),
-    role: z.enum(['ADMIN', 'USER']).optional(),
+    role: z.enum(['ADMIN', 'USER', 'HOST']).optional(),
   }),
 });
 

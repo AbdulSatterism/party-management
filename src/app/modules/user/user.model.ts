@@ -37,6 +37,18 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       default: '',
     },
+    passport: {
+      type: String,
+      default: '',
+    },
+    recidential: {
+      type: String,
+      default: '',
+    },
+    host: {
+      type: Boolean,
+      default: false,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

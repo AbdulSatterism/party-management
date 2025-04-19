@@ -7,9 +7,12 @@ export type IUser = {
   email: string;
   phone?: string;
   password: string;
-  role?: 'ADMIN' | 'USER';
+  role?: 'ADMIN' | 'USER' | 'HOST';
   image?: string;
+  passport?: string;
+  recidential?: string;
   isDeleted?: boolean;
+  host?: boolean;
   authentication?: {
     isResetPassword: boolean;
     oneTimeCode: number;
