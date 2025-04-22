@@ -12,7 +12,7 @@ export type IUser = {
   passport?: string;
   recidential?: string;
   isDeleted?: boolean;
-  host?: boolean;
+  hostRequest?: 'NONE' | 'REQUESTED' | 'APPROVED' | 'REJECTED';
   authentication?: {
     isResetPassword: boolean;
     oneTimeCode: number;

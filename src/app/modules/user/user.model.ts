@@ -45,9 +45,10 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       default: '',
     },
-    host: {
-      type: Boolean,
-      default: false,
+    hostRequest: {
+      type: String,
+      enum: ['NONE', 'REQUESTED', 'APPROVED', 'REJECTED'],
+      default: 'NONE',
     },
     isDeleted: {
       type: Boolean,
