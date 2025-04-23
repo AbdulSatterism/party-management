@@ -54,4 +54,11 @@ router.get(
   UserController.getUserProfile,
 );
 
+router.patch(
+  '/host-request',
+  fileUploadHandler(),
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  UserController.hostRequest,
+);
+
 export const UserRoutes = router;

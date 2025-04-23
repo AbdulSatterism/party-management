@@ -10,7 +10,7 @@ export type IUser = {
   role?: 'ADMIN' | 'USER' | 'HOST';
   image?: string;
   passport?: string;
-  recidential?: string;
+  residential?: string;
   isDeleted?: boolean;
   hostRequest?: 'NONE' | 'REQUESTED' | 'APPROVED' | 'REJECTED';
   authentication?: {

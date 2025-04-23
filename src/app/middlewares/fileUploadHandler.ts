@@ -29,6 +29,12 @@ const fileUploadHandler = () => {
         case 'image':
           uploadDir = path.join(baseUploadDir, 'images');
           break;
+        case 'passport':
+          uploadDir = path.join(baseUploadDir, 'docs');
+          break;
+        case 'residential':
+          uploadDir = path.join(baseUploadDir, 'docs');
+          break;
         case 'gifImage':
           uploadDir = path.join(baseUploadDir, 'gifImage');
           break;
@@ -61,13 +67,6 @@ const fileUploadHandler = () => {
 
   const filterFilter = (req: Request, file: any, cb: FileFilterCallback) => {
     if (file.fieldname === 'image' || file.fieldname === 'coverPhoto') {
-      // Allow all images without checking the type
-
-      // //TODO: update file system
-      // if (file.mimetype === 'image/gif' || file.mimetype.startsWith('image/')) {
-      //   cb(null, true);
-      // }
-
       cb(null, true);
     } else if (file.fieldname === 'gifImage') {
       if (file.mimetype === 'image/gif') {
@@ -86,11 +85,20 @@ const fileUploadHandler = () => {
           ),
         );
       }
-    } else if (file.fieldname === 'doc') {
-      if (file.mimetype === 'application/pdf') {
+    } else if (
+      file.fieldname === 'doc' ||
+      file.fieldname === 'passport' ||
+      file.fieldname === 'residential'
+    ) {
+      if (
+        file.mimetype === 'application/pdf' ||
+        file.mimetype.startsWith('image/')
+      ) {
         cb(null, true);
       } else {
-        cb(new AppError(StatusCodes.BAD_REQUEST, 'Only pdf supported'));
+        cb(
+          new AppError(StatusCodes.BAD_REQUEST, 'Only pdf or image supported'),
+        );
       }
     } else {
       throw new AppError(StatusCodes.BAD_REQUEST, 'This file is not supported');
@@ -106,6 +114,8 @@ const fileUploadHandler = () => {
     { name: 'coverPhoto', maxCount: 10 },
     { name: 'media', maxCount: 10 },
     { name: 'doc', maxCount: 10 },
+    { name: 'passport', maxCount: 10 },
+    { name: 'residential', maxCount: 10 },
   ]);
   return upload;
 };

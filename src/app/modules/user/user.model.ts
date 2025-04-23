@@ -41,7 +41,7 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       default: '',
     },
-    recidential: {
+    residential: {
       type: String,
       default: '',
     },

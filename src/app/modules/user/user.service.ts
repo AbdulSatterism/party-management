@@ -92,10 +92,6 @@ const updateProfileToDB = async (
     throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
 
-  if (!isExistUser) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'Blog not found');
-  }
-
   if (payload.image && isExistUser.image) {
     unlinkFile(isExistUser.image);
   }
@@ -133,6 +129,46 @@ const searchUserByPhone = async (searchTerm: string, userId: string) => {
   return result;
 };
 
+//* host request
+
+const hostRequest = async (
+  user: JwtPayload,
+  payload: Partial<IUser>,
+): Promise<Partial<IUser | null>> => {
+  const { id } = user;
+  const isExistUser = await User.isExistUserById(id);
+
+  if (!isExistUser) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+
+  if (isExistUser.role === 'HOST') {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'You are already a host!');
+  }
+
+  if (payload.passport && isExistUser.passport) {
+    unlinkFile(isExistUser.passport);
+  }
+  if (payload.residential && isExistUser.residential) {
+    unlinkFile(isExistUser.residential);
+  }
+
+  const updateDoc = await User.findOneAndUpdate(
+    { _id: id },
+    { $set: { ...payload }, hostRequest: 'REQUESTED' },
+    { new: true },
+  );
+
+  if (!updateDoc) {
+    throw new AppError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      'Error updating host request!',
+    );
+  }
+
+  return updateDoc;
+};
+
 export const UserService = {
   createUserFromDb,
   getUserProfileFromDB,
@@ -140,4 +176,5 @@ export const UserService = {
   getSingleUser,
   searchUserByPhone,
   getAllUsers,
+  hostRequest,
 };

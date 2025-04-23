@@ -97,6 +97,37 @@ const searchByPhone = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+//** host request
+
+const hostRequest = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
+
+  let passport;
+  let residential;
+
+  if (req.files && 'passport' in req.files && req.files.passport[0]) {
+    passport = `/docs/${req.files.passport[0].filename}`;
+  }
+
+  if (req.files && 'residential' in req.files && req.files.residential[0]) {
+    residential = `/docs/${req.files.residential[0].filename}`;
+  }
+
+  const value = {
+    passport,
+    residential,
+  };
+
+  const result = await UserService.hostRequest(user, value);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Host request send successfully',
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   getUserProfile,
@@ -104,4 +135,5 @@ export const UserController = {
   searchByPhone,
   getSingleUser,
   getAllUser,
+  hostRequest,
 };
