@@ -177,25 +177,6 @@ const hostRequest = async (
   return updateDoc;
 };
 
-//* all host request by admin
-
-const getAllHostRequest = async (query: Record<string, unknown>) => {
-  const hostQuery = new QueryBuilder(
-    User.find({ hostRequest: 'REQUESTED' }),
-    query,
-  )
-    .search(['name', 'email'])
-    .filter()
-    .sort()
-    .fields()
-    .paginate();
-
-  const result = await hostQuery.modelQuery;
-  const meta = await hostQuery.countTotal();
-
-  return { result, meta };
-};
-
 //* approved host  request by admin with id
 
 const approvedHostRequest = async (id: string) => {
@@ -240,6 +221,10 @@ const rejectedHostRequest = async (id: string) => {
     throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
 
+  if (isExistUser.role === 'HOST') {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'host can not be rejected!');
+  }
+
   const updateDoc = await User.findOneAndUpdate(
     { _id: id },
     { $set: { role: USER_ROLES.USER, hostRequest: 'REJECTED' } },
@@ -256,6 +241,60 @@ const rejectedHostRequest = async (id: string) => {
   return updateDoc;
 };
 
+//* all host request by admin
+
+const getAllHostRequest = async (query: Record<string, unknown>) => {
+  const hostQuery = new QueryBuilder(
+    User.find({ hostRequest: 'REQUESTED' }),
+    query,
+  )
+    .search(['name', 'email'])
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
+
+  const result = await hostQuery.modelQuery;
+  const meta = await hostQuery.countTotal();
+
+  return { result, meta };
+};
+
+//* get all rejected host
+
+const getAllRejectedHostRequest = async (query: Record<string, unknown>) => {
+  const hostQuery = new QueryBuilder(
+    User.find({ hostRequest: 'REJECTED' }),
+    query,
+  )
+    .search(['name', 'email'])
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
+
+  const result = await hostQuery.modelQuery;
+  const meta = await hostQuery.countTotal();
+
+  return { result, meta };
+};
+
+//* all host by admin
+
+const getAllHost = async (query: Record<string, unknown>) => {
+  const hostQuery = new QueryBuilder(User.find({ role: 'HOST' }), query)
+    .search(['name', 'email'])
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
+
+  const result = await hostQuery.modelQuery;
+  const meta = await hostQuery.countTotal();
+
+  return { result, meta };
+};
+
 export const UserService = {
   createUserFromDb,
   getUserProfileFromDB,
@@ -267,4 +306,6 @@ export const UserService = {
   getAllHostRequest,
   approvedHostRequest,
   rejectedHostRequest,
+  getAllRejectedHostRequest,
+  getAllHost,
 };

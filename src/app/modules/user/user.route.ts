@@ -76,6 +76,14 @@ router.get(
   UserController.getAllHostRequest,
 );
 
+router.get(
+  '/all-rejected-host',
+  auth(USER_ROLES.ADMIN),
+  UserController.getAllRejectedHostRequest,
+);
+
+router.get('/all-host', auth(USER_ROLES.ADMIN), UserController.getAllHost);
+
 router.patch(
   '/host-request-approve/:id',
   auth(USER_ROLES.ADMIN),

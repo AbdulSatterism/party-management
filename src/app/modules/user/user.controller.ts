@@ -141,6 +141,19 @@ const getAllHostRequest = catchAsync(async (req, res) => {
   });
 });
 
+///* rejected host request
+
+const getAllRejectedHostRequest = catchAsync(async (req, res) => {
+  const result = await UserService.getAllRejectedHostRequest(req.query);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'All host request retrieved successfully',
+    data: result,
+  });
+});
+
 //* approve host request
 
 const approveHostRequest = catchAsync(async (req, res) => {
@@ -169,6 +182,19 @@ const rejectHostRequest = catchAsync(async (req, res) => {
   });
 });
 
+//* get all host by admin
+
+const getAllHost = catchAsync(async (req, res) => {
+  const result = await UserService.getAllHost(req.query);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'All host retrieved successfully',
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   getUserProfile,
@@ -180,4 +206,6 @@ export const UserController = {
   getAllHostRequest,
   approveHostRequest,
   rejectHostRequest,
+  getAllRejectedHostRequest,
+  getAllHost,
 };
