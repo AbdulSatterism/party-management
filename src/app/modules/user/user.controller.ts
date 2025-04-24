@@ -141,6 +141,34 @@ const getAllHostRequest = catchAsync(async (req, res) => {
   });
 });
 
+//* approve host request
+
+const approveHostRequest = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await UserService.approvedHostRequest(id);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Host request approved successfully',
+    data: result,
+  });
+});
+
+//* reject host request
+
+const rejectHostRequest = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await UserService.rejectedHostRequest(id);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Host request rejected!',
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   getUserProfile,
@@ -150,4 +178,6 @@ export const UserController = {
   getAllUser,
   hostRequest,
   getAllHostRequest,
+  approveHostRequest,
+  rejectHostRequest,
 };

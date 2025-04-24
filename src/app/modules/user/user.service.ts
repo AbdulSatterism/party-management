@@ -147,6 +147,13 @@ const hostRequest = async (
     throw new AppError(StatusCodes.BAD_REQUEST, 'You are already a host!');
   }
 
+  if (isExistUser.role === 'ADMIN') {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'You are admin do not need to be host!',
+    );
+  }
+
   if (payload.passport && isExistUser.passport) {
     unlinkFile(isExistUser.passport);
   }
@@ -156,7 +163,7 @@ const hostRequest = async (
 
   const updateDoc = await User.findOneAndUpdate(
     { _id: id },
-    { $set: { ...payload }, hostRequest: 'REQUESTED' },
+    { $set: { ...payload, hostRequest: 'REQUESTED' } },
     { new: true },
   );
 
@@ -189,7 +196,65 @@ const getAllHostRequest = async (query: Record<string, unknown>) => {
   return { result, meta };
 };
 
-//* approved host request by admin
+//* approved host  request by admin with id
+
+const approvedHostRequest = async (id: string) => {
+  const isExistUser = await User.isExistUserById(id);
+
+  if (!isExistUser) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+
+  if (isExistUser.role === 'HOST') {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'You are already a host!');
+  }
+
+  if (isExistUser.role === 'ADMIN') {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'You are admin do not need to be host!',
+    );
+  }
+
+  const updateDoc = await User.findOneAndUpdate(
+    { _id: id },
+    { $set: { role: USER_ROLES.HOST, hostRequest: 'APPROVED' } },
+    { new: true },
+  );
+
+  if (!updateDoc) {
+    throw new AppError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      'Error updating host request!',
+    );
+  }
+
+  return updateDoc;
+};
+
+//* host rejected by admin
+
+const rejectedHostRequest = async (id: string) => {
+  const isExistUser = await User.isExistUserById(id);
+  if (!isExistUser) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+
+  const updateDoc = await User.findOneAndUpdate(
+    { _id: id },
+    { $set: { role: USER_ROLES.USER, hostRequest: 'REJECTED' } },
+    { new: true },
+  );
+
+  if (!updateDoc) {
+    throw new AppError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      'failded to reject host request',
+    );
+  }
+
+  return updateDoc;
+};
 
 export const UserService = {
   createUserFromDb,
@@ -200,4 +265,6 @@ export const UserService = {
   getAllUsers,
   hostRequest,
   getAllHostRequest,
+  approvedHostRequest,
+  rejectedHostRequest,
 };
