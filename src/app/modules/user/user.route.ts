@@ -76,4 +76,16 @@ router.get(
   UserController.getAllHostRequest,
 );
 
+router.patch(
+  '/host-request-approve/:id',
+  auth(USER_ROLES.ADMIN),
+  UserController.approveHostRequest,
+);
+
+router.patch(
+  '/host-request-reject/:id',
+  auth(USER_ROLES.ADMIN),
+  UserController.rejectHostRequest,
+);
+
 export const UserRoutes = router;
