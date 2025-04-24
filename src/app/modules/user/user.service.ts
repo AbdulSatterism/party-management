@@ -12,6 +12,7 @@ import { IUser } from './user.interface';
 import { User } from './user.model';
 import unlinkFile from '../../../shared/unlinkFile';
 import AppError from '../../errors/AppError';
+import QueryBuilder from '../../builder/QueryBuilder';
 
 const createUserFromDb = async (payload: IUser) => {
   payload.role = USER_ROLES.USER;
@@ -129,7 +130,7 @@ const searchUserByPhone = async (searchTerm: string, userId: string) => {
   return result;
 };
 
-//* host request
+//! host request
 
 const hostRequest = async (
   user: JwtPayload,
@@ -169,6 +170,27 @@ const hostRequest = async (
   return updateDoc;
 };
 
+//* all host request by admin
+
+const getAllHostRequest = async (query: Record<string, unknown>) => {
+  const hostQuery = new QueryBuilder(
+    User.find({ hostRequest: 'REQUESTED' }),
+    query,
+  )
+    .search(['name', 'email'])
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
+
+  const result = await hostQuery.modelQuery;
+  const meta = await hostQuery.countTotal();
+
+  return { result, meta };
+};
+
+//* approved host request by admin
+
 export const UserService = {
   createUserFromDb,
   getUserProfileFromDB,
@@ -177,4 +199,5 @@ export const UserService = {
   searchUserByPhone,
   getAllUsers,
   hostRequest,
+  getAllHostRequest,
 };

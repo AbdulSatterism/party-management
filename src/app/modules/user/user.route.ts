@@ -61,4 +61,19 @@ router.patch(
   UserController.hostRequest,
 );
 
+//! host part
+
+router.patch(
+  '/host-request',
+  fileUploadHandler(),
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  UserController.hostRequest,
+);
+
+router.get(
+  '/all-host-request',
+  auth(USER_ROLES.ADMIN),
+  UserController.getAllHostRequest,
+);
+
 export const UserRoutes = router;
