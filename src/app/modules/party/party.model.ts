@@ -10,6 +10,7 @@ const partySchema = new Schema<IPartyDoc>(
     partyTimeStart: { type: String, required: true },
     partyTimeEnd: { type: String, required: true },
     partyDate: { type: String, required: true },
+    country: { type: String, required: true },
     address: { type: String, required: true },
     location: {
       type: { type: String, default: 'Point' },

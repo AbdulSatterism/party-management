@@ -9,6 +9,7 @@ const createPartyValidationSchema = z.object({
     partyTimeStart: z.string(),
     partyTimeEnd: z.string(),
     partyDate: z.string(),
+    country: z.string(),
     address: z.string().min(1, 'Location must be at least 1 character long'),
     location: z.object({
       type: z.literal('Point'),
@@ -31,6 +32,7 @@ const updatePartyValidationSchema = z.object({
       partyTimeStart: z.string().optional(),
       partyTimeEnd: z.string().optional(),
       partyDate: z.string().optional(),
+      country: z.string().optional(),
       address: z
         .string()
         .min(1, 'Location must be at least 1 character long')
