@@ -8,6 +8,7 @@ const partySchema = new Schema<IPartyDoc>(
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     partyDetails: { type: String, required: true },
     partyTimeStart: { type: String, required: true },
+    image: { type: String, required: true },
     partyTimeEnd: { type: String, required: true },
     partyDate: { type: String, required: true },
     country: { type: String, required: true },

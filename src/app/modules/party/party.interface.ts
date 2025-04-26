@@ -4,6 +4,7 @@ export interface IParty {
   userId: Types.ObjectId;
   partyDetails: string;
   partyTimeStart: string;
+  image: string;
   partyTimeEnd: string;
   partyDate: string;
   participants?: Types.ObjectId[];
