@@ -54,19 +54,16 @@ router.get(
   UserController.getUserProfile,
 );
 
-router.patch(
-  '/host-request',
-  fileUploadHandler(),
-  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
-  UserController.hostRequest,
-);
-
 //! host part
 
 router.patch(
   '/host-request',
   fileUploadHandler(),
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next();
+  },
   UserController.hostRequest,
 );
 

@@ -163,7 +163,12 @@ const hostRequest = async (
 
   const updateDoc = await User.findOneAndUpdate(
     { _id: id },
-    { $set: { ...payload, hostRequest: 'REQUESTED' } },
+    {
+      $set: {
+        ...payload,
+        hostRequest: 'REQUESTED',
+      },
+    },
     { new: true },
   );
 

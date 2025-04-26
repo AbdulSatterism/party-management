@@ -97,7 +97,7 @@ const searchByPhone = catchAsync(async (req, res) => {
   });
 });
 
-//** host request
+//! host request
 
 const hostRequest = catchAsync(async (req, res) => {
   const user = req.user;
@@ -116,6 +116,7 @@ const hostRequest = catchAsync(async (req, res) => {
   const value = {
     passport,
     residential,
+    ...req.body,
   };
 
   const result = await UserService.hostRequest(user, value);
