@@ -10,7 +10,11 @@ const partySchema = new Schema<IPartyDoc>(
     partyTimeStart: { type: String, required: true },
     partyTimeEnd: { type: String, required: true },
     partyDate: { type: String, required: true },
-    location: { type: String, required: true },
+    address: { type: String, required: true },
+    location: {
+      type: { type: String, default: 'Point' },
+      coordinates: { type: [Number] }, //[example:longtitude->90.413, latitude->23.456]
+    },
     participants: [
       { type: Schema.Types.ObjectId, ref: 'User', required: false },
     ],
@@ -20,5 +24,9 @@ const partySchema = new Schema<IPartyDoc>(
   },
   { timestamps: true },
 );
+
+// Create a 2dsphere index on the location field for geospatial queries
+// This index is necessary for geospatial queries to work properly
+partySchema.index({ location: '2dsphere' });
 
 export const Party = model<IPartyDoc>('Party', partySchema);

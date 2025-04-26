@@ -9,6 +9,10 @@ export interface IParty {
   participants?: Types.ObjectId[];
   totalSits: number;
   partyFee: number;
-  location: string;
+  address: string;
+  location: {
+    type: string;
+    coordinates: number[];
+  };
   paypalAccount: string;
 }

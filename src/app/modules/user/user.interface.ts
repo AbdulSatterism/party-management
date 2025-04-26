@@ -13,6 +13,7 @@ export type IUser = {
   residential?: string;
   isDeleted?: boolean;
   hostRequest?: 'NONE' | 'REQUESTED' | 'APPROVED' | 'REJECTED';
+  paypalAccount?: string;
   authentication?: {
     isResetPassword: boolean;
     oneTimeCode: number;

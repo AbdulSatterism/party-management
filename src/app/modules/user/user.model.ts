@@ -50,6 +50,10 @@ const userSchema = new Schema<IUser, UserModal>(
       enum: ['NONE', 'REQUESTED', 'APPROVED', 'REJECTED'],
       default: 'NONE',
     },
+    paypalAccount: {
+      type: String,
+      default: '',
+    },
     isDeleted: {
       type: Boolean,
       default: false,
