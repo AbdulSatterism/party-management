@@ -26,6 +26,31 @@ const createParty = catchAsync(async (req, res) => {
   });
 });
 
+const updateParty = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const partyId = req.params.id;
+
+  let image;
+  if (req.files && 'image' in req.files && req.files.image[0]) {
+    image = `/images/${req.files.image[0].filename}`;
+  }
+
+  const value = {
+    image,
+    ...req.body,
+  };
+
+  const result = await PartyService.updateParty(userId, partyId, value);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'party updated successfully',
+    data: result,
+  });
+});
+
 export const PartyController = {
   createParty,
+  updateParty,
 };

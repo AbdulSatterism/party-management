@@ -20,4 +20,16 @@ route.post(
   PartyController.createParty,
 );
 
+route.patch(
+  '/update-party/:id',
+  fileUploadHandler(),
+  auth(USER_ROLES.HOST),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next();
+  },
+  validateRequest(PartyValidation.updatePartyValidationSchema),
+  PartyController.updateParty,
+);
+
 export const partyRoute = route;
