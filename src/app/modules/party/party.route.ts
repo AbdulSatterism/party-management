@@ -32,4 +32,6 @@ route.patch(
   PartyController.updateParty,
 );
 
+route.get('/get-nearby-parties', PartyController.getNearbyParties);
+
 export const partyRoute = route;

@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 export interface IParty {
   userId: Types.ObjectId;
   partyDetails: string;
+  partyName: string;
   partyTimeStart: string;
   image: string;
   partyTimeEnd: string;

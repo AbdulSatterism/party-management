@@ -50,7 +50,31 @@ const updateParty = catchAsync(async (req, res) => {
   });
 });
 
+const getNearbyParties = catchAsync(async (req, res) => {
+  const lat = Number(req.query.lat);
+  const lon = Number(req.query.lon);
+  const days = req.query.days ? Number(req.query.days) : undefined;
+  const search = req.query.search ? String(req.query.search) : undefined;
+  const country = req.query.country ? String(req.query.country) : undefined;
+
+  const parties = await PartyService.getNearbyParties({
+    lat,
+    lon,
+    days,
+    search,
+    country,
+  });
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Nearest all parties',
+    data: parties,
+  });
+});
+
 export const PartyController = {
   createParty,
   updateParty,
+  getNearbyParties,
 };

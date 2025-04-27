@@ -6,6 +6,7 @@ const createPartyValidationSchema = z.object({
       .string()
       .min(5, 'Party details must be at least 5 characters long'),
     partyTimeStart: z.string(),
+    partyName: z.string(),
     partyTimeEnd: z.string(),
     partyDate: z.string(),
     country: z.string(),
@@ -28,6 +29,7 @@ const updatePartyValidationSchema = z.object({
         .min(5, 'Party details must be at least 5 characters long')
         .optional(),
       partyTimeStart: z.string().optional(),
+      partyName: z.string().optional(),
       partyTimeEnd: z.string().optional(),
       partyDate: z.string().optional(),
       country: z.string().optional(),
