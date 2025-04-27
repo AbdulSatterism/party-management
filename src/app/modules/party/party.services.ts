@@ -3,6 +3,7 @@ import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
 import { IParty } from './party.interface';
 import mongoose from 'mongoose';
+import { Party } from './party.model';
 
 const createParyty = async (userId: string, payload: IParty) => {
   const isUserExist = await User.isExistUserById(userId);
@@ -20,7 +21,7 @@ const createParyty = async (userId: string, payload: IParty) => {
 
   payload.userId = new mongoose.Types.ObjectId(userId);
 
-  const party = await User.create(payload);
+  const party = await Party.create(payload);
 
   return party;
 };

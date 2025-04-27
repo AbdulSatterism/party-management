@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 const createPartyValidationSchema = z.object({
   body: z.object({
-    userId: z.string(),
     partyDetails: z
       .string()
       .min(5, 'Party details must be at least 5 characters long'),
@@ -24,7 +23,6 @@ const createPartyValidationSchema = z.object({
 const updatePartyValidationSchema = z.object({
   body: z
     .object({
-      userId: z.string().optional(),
       partyDetails: z
         .string()
         .min(5, 'Party details must be at least 5 characters long')
