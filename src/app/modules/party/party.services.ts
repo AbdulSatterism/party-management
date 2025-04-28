@@ -28,42 +28,6 @@ const createParyty = async (userId: string, payload: IParty) => {
   return party;
 };
 
-const updateParty = async (
-  userId: string,
-  partyId: string,
-  payload: Partial<IParty>,
-) => {
-  const isUserExist = await User.isExistUserById(userId);
-  const isPartyExist = await Party.findById(partyId);
-
-  if (!isUserExist) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
-  }
-
-  if (!isPartyExist) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
-  }
-
-  if (isUserExist._id.toString() !== isPartyExist.userId.toString()) {
-    throw new AppError(
-      StatusCodes.FORBIDDEN,
-      'You are not authorized to update this party!',
-    );
-  }
-
-  if (payload.image && isPartyExist.image) {
-    unlinkFile(isPartyExist.image);
-  }
-
-  const updatedParty = await Party.findByIdAndUpdate(
-    partyId,
-    { $set: payload },
-    { new: true },
-  );
-
-  return updatedParty;
-};
-
 const getNearbyParties = async (query: {
   lat?: number;
   lon?: number;
@@ -132,8 +96,60 @@ const getNearbyParties = async (query: {
   return parties;
 };
 
+//* signle party with participants
+
+const getSingleParty = async (partyId: string) => {
+  const isPartyExist = await Party.findById(partyId).populate([
+    { path: 'participants', select: 'name email image' },
+    { path: 'userId', select: 'name email image' },
+  ]);
+
+  if (!isPartyExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
+  }
+
+  return isPartyExist;
+};
+
+const updateParty = async (
+  userId: string,
+  partyId: string,
+  payload: Partial<IParty>,
+) => {
+  const isUserExist = await User.isExistUserById(userId);
+  const isPartyExist = await Party.findById(partyId);
+
+  if (!isUserExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+
+  if (!isPartyExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
+  }
+
+  if (isUserExist._id.toString() !== isPartyExist.userId.toString()) {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'You are not authorized to update this party!',
+    );
+  }
+
+  if (payload.image && isPartyExist.image) {
+    unlinkFile(isPartyExist.image);
+  }
+
+  const updatedParty = await Party.findByIdAndUpdate(
+    partyId,
+    { $set: payload },
+    { new: true },
+  );
+
+  return updatedParty;
+};
+
 export const PartyService = {
   createParyty,
   updateParty,
   getNearbyParties,
+  getSingleParty,
 };
