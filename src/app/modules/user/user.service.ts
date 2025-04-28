@@ -13,6 +13,7 @@ import { User } from './user.model';
 import unlinkFile from '../../../shared/unlinkFile';
 import AppError from '../../errors/AppError';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { IHostApproval } from '../../../types/emailTamplate';
 
 const createUserFromDb = async (payload: IUser) => {
   payload.role = USER_ROLES.USER;
@@ -215,6 +216,15 @@ const approvedHostRequest = async (id: string) => {
     );
   }
 
+  const emailValues: IHostApproval = {
+    email: isExistUser.email,
+    hostName: isExistUser.name || 'HOST',
+  };
+
+  // Send email to host
+  const hostConfermationMail = emailTemplate.hostApproval(emailValues);
+  emailHelper.sendEmail(hostConfermationMail);
+
   return updateDoc;
 };
 
@@ -242,6 +252,15 @@ const rejectedHostRequest = async (id: string) => {
       'failded to reject host request',
     );
   }
+
+  const emailValues: IHostApproval = {
+    email: isExistUser.email,
+    hostName: isExistUser.name || 'HOST',
+  };
+
+  // Send email to host
+  const hostConfermationMail = emailTemplate.HostRejected(emailValues);
+  emailHelper.sendEmail(hostConfermationMail);
 
   return updateDoc;
 };
