@@ -111,6 +111,23 @@ const getSingleParty = async (partyId: string) => {
   return isPartyExist;
 };
 
+//* all parties by specific host
+
+const getAllPartiesByHost = async (userId: string) => {
+  const isUserExist = await User.isExistUserById(userId);
+
+  if (!isUserExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+
+  const hostParties = await Party.find({ userId }).populate([
+    { path: 'participants', select: 'name email image' },
+    { path: 'userId', select: 'name email image' },
+  ]);
+
+  return hostParties;
+};
+
 const updateParty = async (
   userId: string,
   partyId: string,
@@ -152,4 +169,5 @@ export const PartyService = {
   updateParty,
   getNearbyParties,
   getSingleParty,
+  getAllPartiesByHost,
 };

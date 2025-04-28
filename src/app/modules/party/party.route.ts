@@ -34,6 +34,13 @@ route.patch(
 
 route.get('/get-nearby-parties', PartyController.getNearbyParties);
 
+// all parties by specific host
+route.get(
+  '/host-parties',
+  auth(USER_ROLES.HOST, USER_ROLES.ADMIN),
+  PartyController.getAllPartiesByHost,
+);
+
 route.get('/party-details/:id', PartyController.getSingleParty);
 
 export const partyRoute = route;

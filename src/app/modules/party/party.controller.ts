@@ -61,6 +61,19 @@ const getSingleParty = catchAsync(async (req, res) => {
   });
 });
 
+//* all parties by specific host
+const getAllPartiesByHost = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const parties = await PartyService.getAllPartiesByHost(userId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'All parties by host',
+    data: parties,
+  });
+});
+
 const updateParty = catchAsync(async (req, res) => {
   const userId = req.user.id;
   const partyId = req.params.id;
@@ -90,4 +103,5 @@ export const PartyController = {
   updateParty,
   getNearbyParties,
   getSingleParty,
+  getAllPartiesByHost,
 };
