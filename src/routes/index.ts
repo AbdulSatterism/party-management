@@ -7,6 +7,7 @@ import { privacyRoutes } from '../app/modules/privacy/privacy.routes';
 import { aboutRoutes } from '../app/modules/aboutUs/aboutUs.route';
 import { tersmConditionRoutes } from '../app/modules/termsAndCondition/termsAndCondition.route';
 import { partyRoute } from '../app/modules/party/party.route';
+import { SavedPartyRoutes } from '../app/modules/savedParty/savedParty.route';
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ const apiRoutes = [
   { path: '/about', route: aboutRoutes },
   { path: '/terms', route: tersmConditionRoutes },
   { path: '/party', route: partyRoute },
+  { path: '/saved-party', route: SavedPartyRoutes },
 
   // { path: '/payment', route: PaymentRoutes },
   // { path: '/package', route: packageRoute },
