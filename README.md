@@ -1,1 +1,5 @@
-# Project completed by Md. Abdul Satter(Back-end developer) work at bdCalling, Dhaka Bangladesh
+# developer : Abdul Satter(Back-end developer)
+
+# project overview
+
+## party management system
