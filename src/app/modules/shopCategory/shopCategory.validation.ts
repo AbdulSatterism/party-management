@@ -8,7 +8,7 @@ const createShopCategorySchema = z.object({
 
 const updateShopCategorySchema = z.object({
   body: z.object({
-    categoryName: z.string(),
+    categoryName: z.string().optional(),
   }),
 });
 

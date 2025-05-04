@@ -8,6 +8,7 @@ import { aboutRoutes } from '../app/modules/aboutUs/aboutUs.route';
 import { tersmConditionRoutes } from '../app/modules/termsAndCondition/termsAndCondition.route';
 import { partyRoute } from '../app/modules/party/party.route';
 import { SavedPartyRoutes } from '../app/modules/savedParty/savedParty.route';
+import { shopCategoryRoutes } from '../app/modules/shopCategory/shopCategory.route';
 
 const router = express.Router();
 
@@ -22,6 +23,7 @@ const apiRoutes = [
   { path: '/terms', route: tersmConditionRoutes },
   { path: '/party', route: partyRoute },
   { path: '/saved-party', route: SavedPartyRoutes },
+  { path: '/shop-category', route: shopCategoryRoutes },
 
   // { path: '/payment', route: PaymentRoutes },
   // { path: '/package', route: packageRoute },
