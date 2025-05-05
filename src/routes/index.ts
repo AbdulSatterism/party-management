@@ -9,6 +9,7 @@ import { tersmConditionRoutes } from '../app/modules/termsAndCondition/termsAndC
 import { partyRoute } from '../app/modules/party/party.route';
 import { SavedPartyRoutes } from '../app/modules/savedParty/savedParty.route';
 import { shopCategoryRoutes } from '../app/modules/shopCategory/shopCategory.route';
+import { ShopRoutes } from '../app/modules/shop/shop.route';
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ const apiRoutes = [
   { path: '/party', route: partyRoute },
   { path: '/saved-party', route: SavedPartyRoutes },
   { path: '/shop-category', route: shopCategoryRoutes },
+  { path: '/shop', route: ShopRoutes },
 
   // { path: '/payment', route: PaymentRoutes },
   // { path: '/package', route: packageRoute },

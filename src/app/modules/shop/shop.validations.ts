@@ -6,7 +6,6 @@ export const createShopItemSchema = z.object({
     title: z.string(),
     price: z.number(),
     link: z.string(),
-    image: z.string(),
     rating: z.number(),
   }),
 });
