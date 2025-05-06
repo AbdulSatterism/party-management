@@ -164,6 +164,39 @@ const updateParty = async (
   return updatedParty;
 };
 
+//! join party with chat group
+
+//* not implemented payment system yet
+
+//* so just when a user join a party user can buy multiple tickets and when
+
+const joinParty = async (userId: string, partyId: string) => {
+  const isUserExist = await User.isExistUserById(userId);
+
+  const isPartyExist = await Party.findById(partyId);
+
+  if (!isUserExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+
+  if (!isPartyExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
+  }
+
+  if (
+    (isPartyExist?.participants ?? []).includes(
+      new mongoose.Types.ObjectId(userId),
+    )
+  ) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'You are already a participant!',
+    );
+  }
+
+  return null;
+};
+
 export const PartyService = {
   createParyty,
   updateParty,
