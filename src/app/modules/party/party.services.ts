@@ -6,6 +6,7 @@ import { IParty } from './party.interface';
 import mongoose from 'mongoose';
 import { Party } from './party.model';
 import unlinkFile from '../../../shared/unlinkFile';
+import { ChatGroup } from '../chatGroup/chatGroup.model';
 
 const createParyty = async (userId: string, payload: IParty) => {
   const isUserExist = await User.isExistUserById(userId);
@@ -169,32 +170,121 @@ const updateParty = async (
 //* not implemented payment system yet
 
 //* so just when a user join a party user can buy multiple tickets and when
+const joinParty = async (userId: string, payload: any) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-const joinParty = async (userId: string, partyId: string) => {
-  const isUserExist = await User.isExistUserById(userId);
+  try {
+    const [isUserExist, isPartyExist] = await Promise.all([
+      User.isExistUserById(userId),
+      Party.findById(payload.partyId),
+    ]);
 
-  const isPartyExist = await Party.findById(partyId);
+    if (!isUserExist) {
+      throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+    }
 
-  if (!isUserExist) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
-  }
+    if (!isPartyExist) {
+      throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
+    }
 
-  if (!isPartyExist) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
-  }
+    // Check if enough seats are available
+    if (isPartyExist.totalSits < payload.ticket) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        'Not enough seats available!',
+      );
+    }
 
-  if (
-    (isPartyExist?.participants ?? []).includes(
-      new mongoose.Types.ObjectId(userId),
-    )
-  ) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      'You are already a participant!',
+    const isParticipant = isPartyExist.participants?.some(
+      participantId => participantId.toString() === userId,
     );
-  }
 
-  return null;
+    if (isParticipant) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        'You are already a participant!',
+      );
+    }
+
+    const chatGroup = await ChatGroup.findOne({
+      partyId: payload.partyId,
+    }).session(session);
+
+    if (chatGroup) {
+      const isUserInGroup = chatGroup.members.find(
+        member => member.userId.toString() === userId,
+      );
+
+      if (!isUserInGroup) {
+        await ChatGroup.findByIdAndUpdate(
+          chatGroup._id,
+          {
+            $push: {
+              members: {
+                userId,
+                ticket: payload.ticket,
+              },
+            },
+          },
+          { new: true, session },
+        );
+      }
+
+      const updatedParty = await Party.findByIdAndUpdate(
+        payload.partyId,
+        {
+          $push: { participants: userId },
+          $inc: { totalSits: -payload.ticket },
+        },
+        { new: true, session },
+      );
+
+      await session.commitTransaction();
+      return updatedParty;
+    }
+
+    const [newChatGroup, updatedParty] = await Promise.all([
+      ChatGroup.create(
+        [
+          {
+            partyId: payload.partyId,
+            groupName: isPartyExist.partyName,
+            members: [
+              {
+                userId,
+                ticket: payload.ticket,
+              },
+            ],
+          },
+        ],
+        { session },
+      ),
+      Party.findByIdAndUpdate(
+        payload.partyId,
+        {
+          $push: { participants: userId },
+          $inc: { totalSits: -payload.ticket },
+        },
+        { new: true, session },
+      ),
+    ]);
+
+    if (!newChatGroup[0] || !updatedParty) {
+      throw new AppError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        'Error creating chat group or updating party!',
+      );
+    }
+
+    await session.commitTransaction();
+    return updatedParty;
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
 };
 
 export const PartyService = {
