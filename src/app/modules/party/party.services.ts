@@ -100,16 +100,21 @@ const getNearbyParties = async (query: {
 //* signle party with participants
 
 const getSingleParty = async (partyId: string) => {
-  const isPartyExist = await Party.findById(partyId).populate([
-    { path: 'participants', select: 'name email image' },
-    { path: 'userId', select: 'name email image' },
-  ]);
+  const isPartyExist = await Party.findById(partyId)
+    .populate([
+      { path: 'participants', select: 'name email image' },
+      { path: 'userId', select: 'name email image' },
+    ])
+    .lean();
 
   if (!isPartyExist) {
     throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
   }
 
-  return isPartyExist;
+  return {
+    ...isPartyExist,
+    totalParticipants: isPartyExist.participants?.length || 0,
+  };
 };
 
 //* all parties by specific host
@@ -166,6 +171,10 @@ const updateParty = async (
 };
 
 //! join party with chat group
+
+//TODO: have to implement payment system then will be model for user payment history with party
+
+//TODO: need update this query for ticket limit
 
 //* not implemented payment system yet
 
