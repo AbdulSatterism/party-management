@@ -98,10 +98,24 @@ const updateParty = catchAsync(async (req, res) => {
   });
 });
 
+const joinParty = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+
+  await PartyService.joinParty(userId, req.body);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'joined successfully',
+    data: 'joined successfully',
+  });
+});
+
 export const PartyController = {
   createParty,
   updateParty,
   getNearbyParties,
   getSingleParty,
   getAllPartiesByHost,
+  joinParty,
 };

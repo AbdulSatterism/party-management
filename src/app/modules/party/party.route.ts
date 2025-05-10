@@ -43,4 +43,10 @@ route.get(
 
 route.get('/party-details/:id', PartyController.getSingleParty);
 
+route.post(
+  '/join-party',
+  auth(USER_ROLES.USER, USER_ROLES.HOST, USER_ROLES.ADMIN),
+  PartyController.joinParty,
+);
+
 export const partyRoute = route;

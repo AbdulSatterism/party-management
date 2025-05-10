@@ -8,6 +8,7 @@ export interface IParty {
   image: string;
   partyTimeEnd: string;
   partyDate: string;
+  income: number;
   participants?: Types.ObjectId[];
   totalSits: number;
   partyFee: number;

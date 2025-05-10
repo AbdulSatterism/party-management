@@ -207,6 +207,10 @@ const joinParty = async (userId: string, payload: any) => {
       );
     }
 
+    // Calculate income after 10% deduction
+    const deductionRate = 0.9; // 90% after 10% deduction
+    const finalAmount = payload.amount * deductionRate;
+
     const chatGroup = await ChatGroup.findOne({
       partyId: payload.partyId,
     }).session(session);
@@ -235,7 +239,7 @@ const joinParty = async (userId: string, payload: any) => {
         payload.partyId,
         {
           $push: { participants: userId },
-          $inc: { totalSits: -payload.ticket },
+          $inc: { totalSits: -payload.ticket, income: finalAmount },
         },
         { new: true, session },
       );
@@ -264,7 +268,7 @@ const joinParty = async (userId: string, payload: any) => {
         payload.partyId,
         {
           $push: { participants: userId },
-          $inc: { totalSits: -payload.ticket },
+          $inc: { totalSits: -payload.ticket, income: finalAmount },
         },
         { new: true, session },
       ),
@@ -293,4 +297,5 @@ export const PartyService = {
   getNearbyParties,
   getSingleParty,
   getAllPartiesByHost,
+  joinParty,
 };

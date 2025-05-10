@@ -10,6 +10,7 @@ const partySchema = new Schema<IPartyDoc>(
     partyName: { type: String, required: true },
     partyTimeStart: { type: String, required: true },
     image: { type: String, required: true },
+    income: { type: Number, default: 0 },
     partyTimeEnd: { type: String, required: true },
     partyDate: { type: String, required: true },
     country: { type: String, required: true },
@@ -25,7 +26,7 @@ const partySchema = new Schema<IPartyDoc>(
     totalSits: { type: Number, required: true },
     paypalAccount: { type: String, required: true },
   },
-  { timestamps: true },
+  { timestamps: true, versionKey: false },
 );
 
 // Create a 2dsphere index on the location field for geospatial queries
