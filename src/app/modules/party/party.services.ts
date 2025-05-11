@@ -174,8 +174,6 @@ const updateParty = async (
 
 //TODO: have to implement payment system then will be model for user payment history with party
 
-//TODO: need update this query for ticket limit
-
 //* not implemented payment system yet
 
 //* so just when a user join a party user can buy multiple tickets and when
@@ -237,6 +235,7 @@ const joinParty = async (userId: string, payload: any) => {
               members: {
                 userId,
                 ticket: payload.ticket,
+                limit: payload.ticket,
               },
             },
           },
@@ -267,6 +266,7 @@ const joinParty = async (userId: string, payload: any) => {
               {
                 userId,
                 ticket: payload.ticket,
+                limit: payload.ticket,
               },
             ],
           },
