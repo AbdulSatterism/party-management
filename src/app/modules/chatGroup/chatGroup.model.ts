@@ -9,6 +9,8 @@ const chatGroupSchema = new Schema<IChatGroup>(
       {
         userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
         ticket: { type: Number, default: 0 },
+        limit: { type: Number, default: 0 },
+        guest: [{ type: Schema.Types.ObjectId, ref: 'User' }],
       },
     ],
   },

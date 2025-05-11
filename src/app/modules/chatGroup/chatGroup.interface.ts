@@ -8,5 +8,7 @@ export interface IChatGroup {
   members: {
     userId: Types.ObjectId;
     ticket: number;
+    limit: number;
+    guest?: Types.ObjectId[];
   }[];
 }
