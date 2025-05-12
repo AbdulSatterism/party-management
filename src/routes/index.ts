@@ -10,6 +10,7 @@ import { partyRoute } from '../app/modules/party/party.route';
 import { SavedPartyRoutes } from '../app/modules/savedParty/savedParty.route';
 import { shopCategoryRoutes } from '../app/modules/shopCategory/shopCategory.route';
 import { ShopRoutes } from '../app/modules/shop/shop.route';
+import { ChatGroupRoutes } from '../app/modules/chatGroup/chatGroup.route';
 
 const router = express.Router();
 
@@ -26,6 +27,7 @@ const apiRoutes = [
   { path: '/saved-party', route: SavedPartyRoutes },
   { path: '/shop-category', route: shopCategoryRoutes },
   { path: '/shop', route: ShopRoutes },
+  { path: '/chat-group', route: ChatGroupRoutes },
 
   // { path: '/payment', route: PaymentRoutes },
   // { path: '/package', route: packageRoute },

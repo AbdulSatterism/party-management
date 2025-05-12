@@ -4,7 +4,7 @@ import { IChatGroup } from './chatGroup.interface';
 const chatGroupSchema = new Schema<IChatGroup>(
   {
     partyId: { type: Schema.Types.ObjectId, ref: 'Party', required: true },
-    groupName: { type: String, required: true },
+    groupName: { type: String, required: false },
     members: [
       {
         userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },

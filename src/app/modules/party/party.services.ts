@@ -326,7 +326,6 @@ const leaveParty = async (userId: string, partyId: string) => {
       throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
     }
 
-    // Check if party date is less than 7 days away
     const currentDate = new Date();
     const partyDate = new Date(isPartyExist.partyDate);
     const daysDifference = Math.ceil(
@@ -363,10 +362,9 @@ const leaveParty = async (userId: string, partyId: string) => {
       );
     }
 
-    // Get the number of tickets to return
     const ticketsToReturn = userInGroup.ticket;
+    const incomeToDeduct = ticketsToReturn * isPartyExist.partyFee * 0.9; // 90% of the total amount (10% deduction)
 
-    // Remove user from chat group
     await ChatGroup.findByIdAndUpdate(
       chatGroup._id,
       {
@@ -379,12 +377,14 @@ const leaveParty = async (userId: string, partyId: string) => {
       { new: true, session },
     );
 
-    // Update party with correct number of tickets
     const updatedParty = await Party.findByIdAndUpdate(
       partyId,
       {
         $pull: { participants: userId },
-        $inc: { totalSits: ticketsToReturn },
+        $inc: {
+          totalSits: ticketsToReturn,
+          income: -incomeToDeduct, // Deduct the income
+        },
       },
       { new: true, session },
     );
