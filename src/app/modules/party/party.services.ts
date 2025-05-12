@@ -341,7 +341,7 @@ const leaveParty = async (userId: string, partyId: string) => {
     }
 
     const isParticipant = isPartyExist.participants?.some(
-      participantId => participantId.toString() === userId,
+      participantId => participantId._id.toString() === userId.toString(),
     );
 
     if (!isParticipant) {
