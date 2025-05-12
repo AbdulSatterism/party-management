@@ -300,6 +300,111 @@ const joinParty = async (userId: string, payload: any) => {
   }
 };
 
+//TODO : when leave party then also remove from chatting group and also remove from party participants and also add the total sits
+//TODO : if party date remaining less than 7 days they can't leave from the party.
+//TODO : when revome from party return amount deduct 10%
+
+//TODO not impelmented payment yet so skip payment part now
+const leaveParty = async (userId: string, partyId: string) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const [isUserExist, isPartyExist, chatGroup] = await Promise.all([
+      User.isExistUserById(userId),
+      Party.findById(partyId)
+        .populate('participants', 'name email image')
+        .lean(),
+      ChatGroup.findOne({ partyId }).session(session),
+    ]);
+
+    if (!isUserExist) {
+      throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+    }
+
+    if (!isPartyExist) {
+      throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
+    }
+
+    // Check if party date is less than 7 days away
+    const currentDate = new Date();
+    const partyDate = new Date(isPartyExist.partyDate);
+    const daysDifference = Math.ceil(
+      (partyDate.getTime() - currentDate.getTime()) / (1000 * 3600 * 24),
+    );
+
+    if (daysDifference < 7) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        'Cannot leave party within 7 days of the event!',
+      );
+    }
+
+    const isParticipant = isPartyExist.participants?.some(
+      participantId => participantId.toString() === userId,
+    );
+
+    if (!isParticipant) {
+      throw new AppError(StatusCodes.BAD_REQUEST, 'You are not a participant!');
+    }
+
+    if (!chatGroup) {
+      throw new AppError(StatusCodes.NOT_FOUND, 'Chat group not found!');
+    }
+
+    const userInGroup = chatGroup.members.find(
+      member => member.userId.toString() === userId,
+    );
+
+    if (!userInGroup) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        'User not found in chat group!',
+      );
+    }
+
+    // Get the number of tickets to return
+    const ticketsToReturn = userInGroup.ticket;
+
+    // Remove user from chat group
+    await ChatGroup.findByIdAndUpdate(
+      chatGroup._id,
+      {
+        $pull: {
+          members: {
+            userId: new mongoose.Types.ObjectId(userId),
+          },
+        },
+      },
+      { new: true, session },
+    );
+
+    // Update party with correct number of tickets
+    const updatedParty = await Party.findByIdAndUpdate(
+      partyId,
+      {
+        $pull: { participants: userId },
+        $inc: { totalSits: ticketsToReturn },
+      },
+      { new: true, session },
+    );
+
+    if (!updatedParty) {
+      throw new AppError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        'Error updating party!',
+      );
+    }
+
+    await session.commitTransaction();
+    return updatedParty;
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
 export const PartyService = {
   createParyty,
   updateParty,
@@ -307,4 +412,5 @@ export const PartyService = {
   getSingleParty,
   getAllPartiesByHost,
   joinParty,
+  leaveParty,
 };
