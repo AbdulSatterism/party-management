@@ -43,10 +43,18 @@ route.get(
 
 route.get('/party-details/:id', PartyController.getSingleParty);
 
+//! join and leave from party
+
 route.post(
   '/join-party',
   auth(USER_ROLES.USER, USER_ROLES.HOST, USER_ROLES.ADMIN),
   PartyController.joinParty,
+);
+
+route.post(
+  '/leave-party/:id',
+  auth(USER_ROLES.USER, USER_ROLES.HOST, USER_ROLES.ADMIN),
+  PartyController.leaveParty,
 );
 
 export const partyRoute = route;

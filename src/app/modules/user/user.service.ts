@@ -94,6 +94,13 @@ const updateProfileToDB = async (
     throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
 
+  if (!isExistUser.verified) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'Please verify your email first',
+    );
+  }
+
   if (payload.image && isExistUser.image) {
     unlinkFile(isExistUser.image);
   }

@@ -111,6 +111,18 @@ const joinParty = catchAsync(async (req, res) => {
   });
 });
 
+const leaveParty = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const partyId = req.params.id;
+  const result = await PartyService.leaveParty(userId, partyId);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'left successfully',
+    data: result,
+  });
+});
+
 export const PartyController = {
   createParty,
   updateParty,
@@ -118,4 +130,5 @@ export const PartyController = {
   getSingleParty,
   getAllPartiesByHost,
   joinParty,
+  leaveParty,
 };

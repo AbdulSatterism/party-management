@@ -305,6 +305,7 @@ const joinParty = async (userId: string, payload: any) => {
 //TODO : when revome from party return amount deduct 10%
 
 //TODO not impelmented payment yet so skip payment part now
+
 const leaveParty = async (userId: string, partyId: string) => {
   const session = await mongoose.startSession();
   session.startTransaction();
