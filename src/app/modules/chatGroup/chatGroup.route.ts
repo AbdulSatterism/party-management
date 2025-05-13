@@ -17,4 +17,10 @@ router.post(
   chatGroupController.addNewMember,
 );
 
+router.get(
+  '/user-list/:groupId',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN, USER_ROLES.HOST),
+  chatGroupController.getUserList,
+);
+
 export const ChatGroupRoutes = router;

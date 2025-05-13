@@ -35,7 +35,22 @@ const addNewMember = catchAsync(async (req, res) => {
   });
 });
 
+const getUserList = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const groupId = req.params.groupId;
+  const search = req.query.search ? String(req.query.search) : '';
+  const result = await chatGroupService.getUserList(userId, groupId, search);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'user list retrieved successfully',
+    data: result,
+  });
+});
+
 export const chatGroupController = {
   chattingGroupbySpecificUser,
   addNewMember,
+  getUserList,
 };

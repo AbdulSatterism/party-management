@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from 'http-status-codes';
 import { ChatGroup } from './chatGroup.model';
 import AppError from '../../errors/AppError';
@@ -25,29 +26,6 @@ const chattingGroupbySpecificUser = async (
   return groups;
 };
 
-// {
-//   "success": true,
-//   "message": "user chatting group retrieved successfully",
-//   "data": [
-//       {
-//           "_id": "6822135b54a2d9d92af81310",
-//           "partyId": "680e482d4840ef44287c0187",
-//           "groupName": "Danger zone",
-//           "members": [
-//               {
-//                   "userId": "6809179432c591c8e4cf0b0d",
-//                   "ticket": 3,
-//                   "limit": 3,
-//                   "guest": [],
-//                   "_id": "6822160e3d1d3daf16cb55c6"
-//               }
-//           ],
-//           "createdAt": "2025-05-12T15:27:23.053Z",
-//           "updatedAt": "2025-05-12T15:38:54.206Z",
-//           "__v": 0
-//       }
-//   ]
-// }
 //* add new member in the group
 //* member only can add like have userId and guest if userId matched this userId then this user can add but if limit 0 or 1 then can't add others, if limit have 2 then can add 1 , when add a user this user added in the guest and decrease the limit : if limit 0 or 1 can't added
 
@@ -67,7 +45,6 @@ const addNewMember = async (
   );
 
   const isUserExist = await User.findById(guestId);
-  console.log(guestId, isUserExist);
 
   if (!isUserExist) {
     throw new AppError(StatusCodes.BAD_REQUEST, 'Guest not found');
@@ -100,31 +77,46 @@ const addNewMember = async (
   return updatedGroup;
 };
 
-// const addNewMember = async (
-//   userId: string,
-//   groupId: string,
-//   guestId: string,
-// ) => {
-//   const group = await ChatGroup.find({
-//     _id: groupId,
-//     'members.userId': userId,
-//     'members.limit': { $gt: 0 },
-//   });
-//   if (!group) {
-//     throw new Error('Group not found or user not authorized to add members');
-//   }
-//   const updatedGroup = await ChatGroup.findOneAndUpdate(
-//     { _id: groupId, 'members.userId': userId },
-//     {
-//       $push: { 'members.$.guest': guestId },
-//       $inc: { 'members.$.limit': -1 },
-//     },
-//     { new: true },
-//   );
-//   return updatedGroup;
-// };
+const getUserList = async (
+  userId: string,
+  groupId: string,
+  search?: string,
+) => {
+  const group = await ChatGroup.findById(groupId);
+
+  if (!group) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Group not found');
+  }
+
+  // Collect all existing member and guest IDs
+  const existingUserIds = new Set<string>();
+
+  group.members.forEach(member => {
+    // Exclude userId
+    existingUserIds.add(member.userId.toString());
+
+    // Exclude guests if they exist
+    if (member.guest && Array.isArray(member.guest)) {
+      member.guest.forEach(guestId => {
+        existingUserIds.add(guestId.toString());
+      });
+    }
+  });
+
+  const query: any = {
+    _id: { $nin: Array.from(existingUserIds) },
+  };
+
+  if (search) {
+    query.name = { $regex: search, $options: 'i' }; // Case-insensitive search
+  }
+
+  const users = await User.find(query);
+  return users;
+};
 
 export const chatGroupService = {
   chattingGroupbySpecificUser,
   addNewMember,
+  getUserList,
 };

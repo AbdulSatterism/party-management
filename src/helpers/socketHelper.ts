@@ -8,9 +8,9 @@ const socket = (io: Server) => {
     console.log('A user connected:', socket.id);
 
     // Join a chat room
-    socket.on('join', roomId => {
-      socket.join(roomId);
-      console.log(`User joined room: ${roomId}`);
+    socket.on('join', groupId => {
+      socket.join(groupId);
+      console.log(`User joined room: ${groupId}`);
     });
 
     // socket.on('send-message', async ({ roomId, senderId, message }) => {
@@ -33,14 +33,6 @@ const socket = (io: Server) => {
     //   } catch (error) {
     //     console.error('Error sending message:', error);
     //   }
-    // });
-
-    // // Listen for the chat-started event and emit to the specific room
-    // socket.on('chat-started', ({ chatRoom }) => {
-    //   io.to(chatRoom).emit(`chat-started:${chatRoom}`, {
-    //     chatRoom,
-    //     message: 'Chat started between the groups.',
-    //   });
     // });
 
     // Handle disconnection
