@@ -40,6 +40,7 @@ async function main() {
         origin: '*',
       },
     });
+
     socketHelper.socket(io);
     //@ts-ignore
     global.io = io;

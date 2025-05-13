@@ -2,6 +2,7 @@
 import colors from 'colors';
 import { Server } from 'socket.io';
 import { logger } from '../shared/logger';
+import { Message } from '../app/modules/message/message.model';
 
 const socket = (io: Server) => {
   io.on('connection', socket => {
@@ -13,27 +14,30 @@ const socket = (io: Server) => {
       console.log(`User joined room: ${groupId}`);
     });
 
-    // socket.on('send-message', async ({ roomId, senderId, message }) => {
-    //   try {
-    //     // Save the message to the database
-    //     const newMessage = await Message.create({
-    //       roomId,
-    //       senderId,
-    //       message,
-    //     });
+    socket.on('send-message', async ({ groupId, senderId, message }) => {
+      try {
+        // Save the message to the database
+        const newMessage = await Message.create({
+          groupId,
+          senderId,
+          message,
+        });
 
-    //     // Populate the senderId field
-    //     const populatedMessage = await newMessage.populate(
-    //       'senderId',
-    //       'name email image',
-    //     );
+        // Populate the senderId field
+        const populatedMessage = await newMessage.populate(
+          'senderId',
+          'name email image',
+        );
 
-    //     // Emit the message to all users in the specified chat room
-    //     io.emit(`receive-message:${populatedMessage.roomId}`, populatedMessage);
-    //   } catch (error) {
-    //     console.error('Error sending message:', error);
-    //   }
-    // });
+        // Emit the message to all users in the specified chat room
+        io.emit(
+          `receive-message:${populatedMessage.groupId}`,
+          populatedMessage,
+        );
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
+    });
 
     // Handle disconnection
     socket.on('disconnect', () => {
