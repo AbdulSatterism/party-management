@@ -1,4 +1,7 @@
+import { StatusCodes } from 'http-status-codes';
 import { ChatGroup } from './chatGroup.model';
+import AppError from '../../errors/AppError';
+import { User } from '../user/user.model';
 
 const chattingGroupbySpecificUser = async (
   userId: string,
@@ -48,19 +51,43 @@ const chattingGroupbySpecificUser = async (
 //* add new member in the group
 //* member only can add like have userId and guest if userId matched this userId then this user can add but if limit 0 or 1 then can't add others, if limit have 2 then can add 1 , when add a user this user added in the guest and decrease the limit : if limit 0 or 1 can't added
 
+//TODO: add userId and guestId in the group
+
 const addNewMember = async (
   userId: string,
   groupId: string,
   guestId: string,
 ) => {
-  const group = await ChatGroup.find({
-    _id: groupId,
-    'members.userId': userId,
-    'members.limit': { $gt: 0 },
-  });
-  if (!group) {
-    throw new Error('Group not found or user not authorized to add members');
+  const group = await ChatGroup.findOne(
+    {
+      _id: groupId,
+      'members.userId': userId,
+    },
+    { 'members.$': 1 },
+  );
+
+  const isUserExist = await User.findById(guestId);
+  console.log(guestId, isUserExist);
+
+  if (!isUserExist) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Guest not found');
   }
+
+  if (!group) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      'Group not found or not authorized to add',
+    );
+  }
+
+  const member = group.members[0]; // Direct access since we used projection
+
+  // Check guest limit
+  if (member.limit <= 1) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Guest limit reached');
+  }
+
+  // Update in single operation
   const updatedGroup = await ChatGroup.findOneAndUpdate(
     { _id: groupId, 'members.userId': userId },
     {
@@ -69,9 +96,35 @@ const addNewMember = async (
     },
     { new: true },
   );
+
   return updatedGroup;
 };
 
+// const addNewMember = async (
+//   userId: string,
+//   groupId: string,
+//   guestId: string,
+// ) => {
+//   const group = await ChatGroup.find({
+//     _id: groupId,
+//     'members.userId': userId,
+//     'members.limit': { $gt: 0 },
+//   });
+//   if (!group) {
+//     throw new Error('Group not found or user not authorized to add members');
+//   }
+//   const updatedGroup = await ChatGroup.findOneAndUpdate(
+//     { _id: groupId, 'members.userId': userId },
+//     {
+//       $push: { 'members.$.guest': guestId },
+//       $inc: { 'members.$.limit': -1 },
+//     },
+//     { new: true },
+//   );
+//   return updatedGroup;
+// };
+
 export const chatGroupService = {
   chattingGroupbySpecificUser,
+  addNewMember,
 };

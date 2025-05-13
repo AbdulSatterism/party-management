@@ -20,6 +20,22 @@ const chattingGroupbySpecificUser = catchAsync(async (req, res) => {
   });
 });
 
+const addNewMember = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const groupId = req.params.groupId;
+  const guestId = req.body.guestId;
+
+  const result = await chatGroupService.addNewMember(userId, groupId, guestId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'guest added successfully',
+    data: result,
+  });
+});
+
 export const chatGroupController = {
   chattingGroupbySpecificUser,
+  addNewMember,
 };
