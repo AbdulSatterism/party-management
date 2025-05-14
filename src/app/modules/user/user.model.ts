@@ -20,9 +20,8 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
       select: 0,
-      minlength: 8,
     },
     phone: {
       type: String,
@@ -40,6 +39,14 @@ const userSchema = new Schema<IUser, UserModal>(
     passport: {
       type: String,
       default: '',
+    },
+    googleId: {
+      type: String,
+      unique: true,
+    },
+    facebookId: {
+      type: String,
+      unique: true,
     },
     residential: {
       type: String,
@@ -117,11 +124,12 @@ userSchema.pre('save', async function (next) {
     throw new AppError(StatusCodes.BAD_REQUEST, 'Email already used');
   }
 
-  //password hash
-  this.password = await bcrypt.hash(
-    this.password,
-    Number(config.bcrypt_salt_rounds),
-  );
+  if (this.password) {
+    this.password = (await bcrypt.hash(
+      this.password,
+      Number(config.bcrypt_salt_rounds),
+    )) as string;
+  }
   next();
 });
 

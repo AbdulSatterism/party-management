@@ -40,6 +40,7 @@ const loginUserFromDB = async (payload: ILoginData) => {
   //check match password
   if (
     password &&
+    isExistUser?.password &&
     !(await User.isMatchPassword(password, isExistUser.password))
   ) {
     throw new AppError(StatusCodes.BAD_REQUEST, 'Password is incorrect!');
@@ -248,10 +249,10 @@ const changePasswordToDB = async (
   }
 
   //current password match
-  if (
-    currentPassword &&
-    !(await User.isMatchPassword(currentPassword, isExistUser.password))
-  ) {
+  if (!currentPassword || !isExistUser.password) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Password is required');
+  }
+  if (!(await User.isMatchPassword(currentPassword, isExistUser.password))) {
     throw new AppError(StatusCodes.BAD_REQUEST, 'Password is incorrect');
   }
 
@@ -353,6 +354,86 @@ const resendVerificationEmailToDB = async (email: string) => {
     { $set: { authentication } },
     { new: true },
   );
+};
+
+//! login with google
+
+interface IGoogleLoginPayload {
+  email: string;
+  name: string;
+  image?: string;
+  uid: string;
+}
+
+const googleLogin = async (payload: IGoogleLoginPayload) => {
+  const { email, name, image, uid } = payload;
+
+  if (!email || !uid) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Email and UID are required');
+  }
+
+  // Check if user exists by email
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    // Create new user if doesn't exist
+    user = await User.create({
+      email,
+      name,
+      image: image || undefined,
+      googleId: uid,
+      role: 'USER',
+      verified: true, // Google accounts are pre-verified
+    });
+  } else if (!user.googleId) {
+    // Update existing user with Google ID if they haven't logged in with Google before
+    user = await User.findByIdAndUpdate(
+      user._id,
+      {
+        googleId: uid,
+        verified: true,
+        image: image || user.image, // Keep existing image if no new image provided
+      },
+      { new: true },
+    );
+  }
+
+  if (!user) {
+    throw new AppError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      'Failed to create or update user',
+    );
+  }
+
+  // Generate tokens for authentication
+  const tokenPayload = {
+    id: user._id,
+    email: user.email,
+    role: user.role,
+  };
+
+  const accessToken = jwtHelper.createToken(
+    tokenPayload,
+    config.jwt.jwt_secret as Secret,
+    config.jwt.jwt_expire_in as string,
+  );
+
+  const refreshToken = jwtHelper.createToken(
+    tokenPayload,
+    config.jwt.jwtRefreshSecret as Secret,
+    config.jwt.jwtRefreshExpiresIn as string,
+  );
+
+  // Remove sensitive data before sending response
+  const userObject = user.toObject();
+  delete userObject.password;
+  delete userObject.authentication;
+
+  return {
+    user: userObject,
+    accessToken,
+    refreshToken,
+  };
 };
 
 export const AuthService = {

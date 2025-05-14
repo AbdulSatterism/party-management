@@ -6,12 +6,14 @@ export type IUser = {
   name?: string;
   email: string;
   phone?: string;
-  password: string;
+  password?: string;
   role?: 'ADMIN' | 'USER' | 'HOST';
   image?: string;
   passport?: string;
   residential?: string;
   isDeleted?: boolean;
+  googleId?: string;
+  facebookId?: string;
   hostRequest?: 'NONE' | 'REQUESTED' | 'APPROVED' | 'REJECTED';
   paypalAccount?: string;
   authentication?: {
