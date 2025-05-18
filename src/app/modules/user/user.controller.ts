@@ -119,6 +119,8 @@ const hostRequest = catchAsync(async (req, res) => {
     ...req.body,
   };
 
+  console.log(value);
+
   const result = await UserService.hostRequest(user, value);
 
   sendResponse(res, {

@@ -61,7 +61,7 @@ router.patch(
   fileUploadHandler(),
   auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   (req: Request, res: Response, next: NextFunction) => {
-    req.body = JSON.parse(req.body.data);
+    req.body = JSON.parse(req.body?.data ?? '{}');
     next();
   },
   UserController.hostRequest,

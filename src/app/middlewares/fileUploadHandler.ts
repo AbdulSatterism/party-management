@@ -92,7 +92,8 @@ const fileUploadHandler = () => {
     ) {
       if (
         file.mimetype === 'application/pdf' ||
-        file.mimetype.startsWith('image/')
+        file.mimetype.startsWith('image/') ||
+        file.mimetype === 'application/octet-stream'
       ) {
         cb(null, true);
       } else {

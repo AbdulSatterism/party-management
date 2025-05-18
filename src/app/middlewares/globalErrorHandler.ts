@@ -11,14 +11,13 @@ import handleValidationError from '../errors/handleValidationError';
 import handleCastError from '../errors/handleCastError';
 import handleDuplicateError from '../errors/handleDuplicateError';
 import AppError from '../errors/AppError';
+import { errorLogger } from '../../shared/logger';
 
-const globalErrorHandler: ErrorRequestHandler = (
-  err,
-  req,
-  res,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  next,
-) => {
+const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  config.node_env === 'development'
+    ? console.log('🚨 globalErrorHandler ~~ ', err)
+    : errorLogger.error('🚨 globalErrorHandler ~~ ', err);
+
   let statusCode = 500;
   let message = 'something went wrong';
 
