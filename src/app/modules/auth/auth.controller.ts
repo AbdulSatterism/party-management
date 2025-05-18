@@ -122,6 +122,19 @@ const resendVerificationEmail = catchAsync(
   },
 );
 
+//* login with google
+
+const googleLogin = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.googleLogin(req.body);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User login successfully',
+    data: result,
+  });
+});
+
 export const AuthController = {
   verifyEmail,
   loginUser,
@@ -131,4 +144,5 @@ export const AuthController = {
   deleteAccount,
   newAccessToken,
   resendVerificationEmail,
+  googleLogin,
 };

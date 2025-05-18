@@ -445,4 +445,5 @@ export const AuthService = {
   deleteAccountToDB,
   newAccessTokenToUser,
   resendVerificationEmailToDB,
+  googleLogin,
 };
