@@ -20,8 +20,16 @@ router.post(
   ShopController.createShop,
 );
 
-router.get('/all-products', ShopController.getAllShopItems);
+router.get(
+  '/all-products',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER, USER_ROLES.HOST),
+  ShopController.getAllShopItems,
+);
 
-router.get('/product-details/:id', ShopController.getShopItemById);
+router.get(
+  '/product-details/:id',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER, USER_ROLES.HOST),
+  ShopController.getShopItemById,
+);
 
 export const ShopRoutes = router;

@@ -14,10 +14,15 @@ router.post(
   shopCategoryControllers.createShopCategory,
 );
 
-router.get('/all-shop-category', shopCategoryControllers.getAllShopCategory);
+router.get(
+  '/all-shop-category',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER, USER_ROLES.HOST),
+  shopCategoryControllers.getAllShopCategory,
+);
 
 router.get(
   '/single-shop-category/:id',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER, USER_ROLES.HOST),
   shopCategoryControllers.getShopCategoryById,
 );
 
