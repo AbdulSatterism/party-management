@@ -115,7 +115,6 @@ const verifyEmailToDB = async (payload: IVerifyEmail) => {
     );
   }
 
-  // console.log(isExistUser.authentication?.oneTimeCode, { payload });
   if (isExistUser.authentication?.oneTimeCode !== oneTimeCode) {
     throw new AppError(StatusCodes.BAD_REQUEST, 'You provided wrong otp');
   }

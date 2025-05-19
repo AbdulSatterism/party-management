@@ -6,12 +6,12 @@ import { Message } from '../app/modules/message/message.model';
 
 const socket = (io: Server) => {
   io.on('connection', socket => {
-    console.log('A user connected:', socket.id);
+    logger.info(colors.blue('A user connected'));
 
     // Join a chat room
     socket.on('join', groupId => {
       socket.join(groupId);
-      console.log(`User joined room: ${groupId}`);
+      logger.info(colors.green(`User joined room: ${groupId}`));
     });
 
     socket.on('send-message', async ({ groupId, senderId, message }) => {
