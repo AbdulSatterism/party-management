@@ -3,7 +3,6 @@ import axios from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
 
-import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../../../shared/logger';
 
 export const facebookToken = async (token: string) =>
@@ -15,7 +14,10 @@ export const facebookToken = async (token: string) =>
 
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'images');
 
-export const downloadImage = async (imageUrl: string): Promise<string> => {
+export const downloadImage = async (
+  imageUrl: string,
+  id: string,
+): Promise<string> => {
   try {
     logger.info(`Downloading image from ${imageUrl}`);
 
@@ -30,7 +32,7 @@ export const downloadImage = async (imageUrl: string): Promise<string> => {
 
     // Generate filename with extension
     const ext = path.extname(new URL(imageUrl).pathname) || '.jpg';
-    const filename = `${uuidv4()}${ext}`;
+    const filename = `${id}${ext}`;
     const filepath = path.join(UPLOAD_DIR, filename);
 
     // Save file
