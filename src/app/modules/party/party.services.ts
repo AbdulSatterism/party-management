@@ -71,13 +71,13 @@ const getNearbyParties = async (query: {
 
   // Filter by partyName (partial search, case-insensitive)
   if (search) {
-    const safeSearch = search.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'); // Escape regex characters
+    const safeSearch = search.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
     matchConditions.partyName = { $regex: `.*${safeSearch}.*`, $options: 'i' };
   }
 
   // Filter by country (partial match, case-insensitive)
   if (country) {
-    const safeCountry = country.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&'); // Escape regex characters
+    const safeCountry = country.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
     matchConditions.country = { $regex: `.*${safeCountry}.*`, $options: 'i' };
   }
 
@@ -86,14 +86,37 @@ const getNearbyParties = async (query: {
     pipeline.push({ $match: matchConditions });
   }
 
-  // 👉 ADD THIS CHECK 👇
   if (pipeline.length === 0) {
-    pipeline.push({ $match: {} }); // default match all if no condition given
+    pipeline.push({ $match: {} });
   }
 
-  // Perform aggregation and return the result
-  const parties = await Party.aggregate(pipeline);
+  // Add lookup stage for userId
+  pipeline.push({
+    $lookup: {
+      from: 'users',
+      localField: 'userId',
+      foreignField: '_id',
+      pipeline: [
+        {
+          $project: {
+            email: 1,
+            image: 1,
+          },
+        },
+      ],
+      as: 'userId',
+    },
+  });
 
+  // Unwind the userId array to object
+  pipeline.push({
+    $unwind: {
+      path: '$userId',
+      preserveNullAndEmptyArrays: true,
+    },
+  });
+
+  const parties = await Party.aggregate(pipeline);
   return parties;
 };
 
