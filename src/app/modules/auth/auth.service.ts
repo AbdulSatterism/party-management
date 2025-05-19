@@ -20,6 +20,9 @@ import generateOTP from '../../../util/generateOTP';
 import { User } from '../user/user.model';
 import { ResetToken } from '../resetToken/resetToken.model';
 import AppError from '../../errors/AppError';
+import axios from 'axios';
+import { downloadImage, facebookToken } from './auth.lib';
+import { token } from 'morgan';
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
@@ -380,7 +383,7 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
     user = await User.create({
       email,
       name,
-      image: image || undefined,
+      image: image || '',
       googleId: uid,
       role: 'USER',
       verified: true, // Google accounts are pre-verified
@@ -436,6 +439,179 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
   };
 };
 
+const facebookLogin = async (payload: { token: string }) => {
+  if (!payload.token) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Facebook token is required');
+  }
+
+  try {
+    const userData = await facebookToken(payload.token);
+
+    if (!userData?.email) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        'Unable to get email from Facebook account',
+      );
+    }
+
+    let localImage = '';
+    if (userData.picture?.data?.url) {
+      localImage = await downloadImage(userData.picture.data.url);
+    }
+
+    const userFields = {
+      name: userData.name || '',
+      email: userData.email,
+      image: localImage || '',
+      facebookId: userData.id,
+      role: 'USER' as const,
+      verified: true,
+    };
+
+    let user = await User.findOne({
+      $or: [{ email: userData.email }, { facebookId: userData.id }],
+    });
+
+    if (!user) {
+      user = await User.create(userFields);
+    } else if (!user.facebookId) {
+      user = await User.findByIdAndUpdate(
+        user._id,
+        {
+          ...userFields,
+          image: userFields.image || user.image,
+          name: userFields.name || user.name,
+        },
+        { new: true },
+      );
+    }
+
+    if (!user) {
+      throw new AppError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        'Failed to create or update user',
+      );
+    }
+
+    const tokenPayload = {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const [accessToken, refreshToken] = await Promise.all([
+      jwtHelper.createToken(
+        tokenPayload,
+        config.jwt.jwt_secret as Secret,
+        config.jwt.jwt_expire_in as string,
+      ),
+      jwtHelper.createToken(
+        tokenPayload,
+        config.jwt.jwtRefreshSecret as Secret,
+        config.jwt.jwtRefreshExpiresIn as string,
+      ),
+    ]);
+
+    const { password, authentication, ...userObject } = user.toObject();
+
+    return { user: userObject, accessToken, refreshToken };
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      'Error processing Facebook login',
+    );
+  }
+};
+
+// const facebookLogin = async (payload: { token: string }) => {
+//   if (!payload.token) {
+//     throw new AppError(StatusCodes.BAD_REQUEST, 'Facebook token is required');
+//   }
+
+//   try {
+//     const userData = await facebookToken(payload.token);
+
+//     if (!userData?.email) {
+//       throw new AppError(
+//         StatusCodes.BAD_REQUEST,
+//         'Unable to get email from Facebook account',
+//       );
+//     }
+
+//     console.log(userData, 'userData----------------->');
+
+//     // Download Facebook image and get local URL/path
+//     let localImage = '';
+//     if (userData.picture?.data?.url) {
+//       localImage = await downloadImage(userData.picture.data.url);
+//     }
+
+//     const userFields = {
+//       name: userData.name || '',
+//       email: userData.email,
+//       image: localImage || '',
+//       facebookId: userData.id,
+//       role: 'USER' as const,
+//       verified: true,
+//     };
+
+//     let user = await User.findOne({
+//       $or: [{ email: userData.email }, { facebookId: userData.id }],
+//     });
+
+//     if (!user) {
+//       user = await User.create(userFields);
+//     } else if (!user.facebookId) {
+//       user = await User.findByIdAndUpdate(
+//         user._id,
+//         {
+//           ...userFields,
+//           image: userFields.image || user.image,
+//           name: userFields.name || user.name,
+//         },
+//         { new: true },
+//       );
+//     }
+
+//     if (!user) {
+//       throw new AppError(
+//         StatusCodes.INTERNAL_SERVER_ERROR,
+//         'Failed to create or update user',
+//       );
+//     }
+
+//     const tokenPayload = {
+//       id: user._id,
+//       email: user.email,
+//       role: user.role,
+//     };
+
+//     const [accessToken, refreshToken] = await Promise.all([
+//       jwtHelper.createToken(
+//         tokenPayload,
+//         config.jwt.jwt_secret as Secret,
+//         config.jwt.jwt_expire_in as string,
+//       ),
+//       jwtHelper.createToken(
+//         tokenPayload,
+//         config.jwt.jwtRefreshSecret as Secret,
+//         config.jwt.jwtRefreshExpiresIn as string,
+//       ),
+//     ]);
+
+//     const { password, authentication, ...userObject } = user.toObject();
+
+//     return { user: userObject, accessToken, refreshToken };
+//   } catch (error) {
+//     if (error instanceof AppError) throw error;
+//     throw new AppError(
+//       StatusCodes.INTERNAL_SERVER_ERROR,
+//       'Error processing Facebook login',
+//     );
+//   }
+// };
+
 export const AuthService = {
   verifyEmailToDB,
   loginUserFromDB,
@@ -446,4 +622,5 @@ export const AuthService = {
   newAccessTokenToUser,
   resendVerificationEmailToDB,
   googleLogin,
+  facebookLogin,
 };

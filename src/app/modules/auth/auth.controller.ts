@@ -135,6 +135,17 @@ const googleLogin = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const facebookLogin = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.facebookLogin(req.body);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User login successfully',
+    data: result,
+  });
+});
+
 export const AuthController = {
   verifyEmail,
   loginUser,
@@ -145,4 +156,5 @@ export const AuthController = {
   newAccessToken,
   resendVerificationEmail,
   googleLogin,
+  facebookLogin,
 };
