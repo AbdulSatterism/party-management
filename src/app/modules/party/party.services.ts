@@ -91,6 +91,7 @@ const getNearbyParties = async (query: {
   }
 
   // Add lookup stage for userId
+  // Add lookup for userId
   pipeline.push({
     $lookup: {
       from: 'users',
@@ -101,10 +102,29 @@ const getNearbyParties = async (query: {
           $project: {
             email: 1,
             image: 1,
+            name: 1,
           },
         },
       ],
       as: 'userId',
+    },
+  });
+
+  pipeline.push({
+    $lookup: {
+      from: 'users',
+      localField: 'participants',
+      foreignField: '_id',
+      pipeline: [
+        {
+          $project: {
+            email: 1,
+            image: 1,
+            name: 1,
+          },
+        },
+      ],
+      as: 'participants',
     },
   });
 
@@ -270,7 +290,11 @@ const joinParty = async (userId: string, payload: any) => {
         payload.partyId,
         {
           $push: { participants: userId },
-          $inc: { totalSits: -payload.ticket, income: finalAmount },
+          $inc: {
+            totalSits: -payload.ticket,
+            income: finalAmount,
+            soldTicket: payload.ticket,
+          },
         },
         { new: true, session },
       );
@@ -300,7 +324,11 @@ const joinParty = async (userId: string, payload: any) => {
         payload.partyId,
         {
           $push: { participants: userId },
-          $inc: { totalSits: -payload.ticket, income: finalAmount },
+          $inc: {
+            totalSits: -payload.ticket,
+            income: finalAmount,
+            soldTicket: payload.ticket,
+          },
         },
         { new: true, session },
       ),
@@ -406,6 +434,7 @@ const leaveParty = async (userId: string, partyId: string) => {
         $pull: { participants: userId },
         $inc: {
           totalSits: ticketsToReturn,
+          soldTicket: -ticketsToReturn,
           income: -incomeToDeduct, // Deduct the income
         },
       },

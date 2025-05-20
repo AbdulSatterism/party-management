@@ -15,6 +15,7 @@ const partySchema = new Schema<IPartyDoc>(
     partyDate: { type: String, required: true },
     country: { type: String, required: true },
     address: { type: String, required: true },
+    soldTicket: { type: Number, default: 0 },
     location: {
       type: { type: String, default: 'Point' },
       coordinates: { type: [Number] }, //[example:longtitude->90.413, latitude->23.456]

@@ -14,6 +14,7 @@ export interface IParty {
   partyFee: number;
   country: string;
   address: string;
+  soldTicket?: number;
   location: {
     type: string;
     coordinates: number[]; //[example:longtitude->90.413, latitude->23.456]
