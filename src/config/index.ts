@@ -36,4 +36,8 @@ export default {
     key: process.env.GPT_API,
     gpt_model_url: process.env.GPT_MODEL_URL,
   },
+  paypal: {
+    client_id: process.env.PAYPAL_CLIENT_ID,
+    client_secret: process.env.PAYPAL_CLIENT_SECRET,
+  },
 };
