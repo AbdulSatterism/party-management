@@ -7,9 +7,7 @@ import mongoose from 'mongoose';
 import { Party } from './party.model';
 import unlinkFile from '../../../shared/unlinkFile';
 import { ChatGroup } from '../chatGroup/chatGroup.model';
-import paypal from '@paypal/checkout-server-sdk';
-import paypalPayouts from '@paypal/payouts-sdk';
-import { paypalClient } from '../payment/utils';
+import { captureOrder, payoutToHost } from '../payment/utils';
 import { Payment } from '../payment/payment.model';
 
 const createParyty = async (userId: string, payload: IParty) => {
@@ -356,6 +354,7 @@ const updateParty = async (
 //   }
 // };
 
+//!
 interface JoinPartyPayload {
   partyId: string;
   ticket: number;
@@ -368,41 +367,43 @@ export const joinParty = async (userId: string, payload: JoinPartyPayload) => {
   session.startTransaction();
 
   try {
+    // Step 1: Check if user and party exist
     const [userExists, party] = await Promise.all([
-      User.isExistUserById(userId),
-      Party.findById(payload.partyId).session(session),
+      User.isExistUserById(userId), // Check if user exists
+      Party.findById(payload.partyId).session(session), // Find the party by ID
     ]);
 
-    if (!userExists)
+    if (!userExists) {
       throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
-    if (!party) throw new AppError(StatusCodes.NOT_FOUND, 'Party not found');
-
-    if (!party.participants) {
-      party.participants = [];
     }
 
-    if (party.totalSits < payload.ticket)
+    if (!party) {
+      throw new AppError(StatusCodes.NOT_FOUND, 'Party not found');
+    }
+
+    if (!party.participants) {
+      party.participants = []; // Initialize participants if it's empty
+    }
+
+    // Step 2: Check if there are enough seats
+    if (party.totalSits < payload.ticket) {
       throw new AppError(StatusCodes.BAD_REQUEST, 'Not enough seats');
+    }
 
-    if (party.participants?.some(p => p.toString() === userId))
+    // Step 3: Check if the user is already a participant
+    if (party.participants?.some(p => p.toString() === userId)) {
       throw new AppError(StatusCodes.BAD_REQUEST, 'Already a participant');
+    }
 
-    // Capture payment on PayPal
-    const request = new paypal.orders.OrdersCaptureRequest(payload.orderId);
-    request.requestBody({} as any); // Empty body is sufficient for capture
-    const captureResponse = await paypalClient.execute(request);
-
-    if (
-      captureResponse.statusCode !== 201 ||
-      captureResponse.result.status !== 'COMPLETED'
-    )
+    // Step 4: Capture PayPal order
+    const captureResponse = await captureOrder(payload.orderId); // Capture payment
+    if (!captureResponse || captureResponse.status !== 'COMPLETED') {
       throw new AppError(StatusCodes.PAYMENT_REQUIRED, 'Payment not completed');
+    }
 
-    // Save payment info
-    const captureId =
-      captureResponse.result.purchase_units[0].payments.captures[0].id;
-    const captureStatus = captureResponse.result.status;
-
+    // Step 5: Save payment information
+    const captureId = captureResponse.purchase_units[0].payments.captures[0].id;
+    const captureStatus = captureResponse.status;
     await Payment.create({
       userId,
       partyId: payload.partyId,
@@ -411,37 +412,16 @@ export const joinParty = async (userId: string, payload: JoinPartyPayload) => {
       amount: payload.amount,
     });
 
-    // Calculate payout to host (90% of amount)
+    // Step 6: Payout 90% to the host
     const hostAmount = +(payload.amount * 0.9).toFixed(2);
+    await payoutToHost(
+      party.paypalAccount,
+      hostAmount,
+      party.partyName,
+      payload.partyId,
+    );
 
-    // Pay out 90% to party host's PayPal email
-    const payoutRequestBody = {
-      sender_batch_header: {
-        sender_batch_id: `payout_${Date.now()}_${payload.partyId}`,
-        email_subject: 'Payout for your party',
-      },
-      items: [
-        {
-          recipient_type: 'EMAIL' as const,
-          amount: {
-            value: hostAmount.toFixed(2),
-            currency: 'USD',
-          },
-          receiver: party.paypalAccount,
-          note: `Payout for party host: ${party.partyName}`,
-          sender_item_id: `item_${Date.now()}`,
-        },
-      ],
-    };
-
-    const payoutRequest = new paypalPayouts.payouts.PayoutsPostRequest();
-    payoutRequest.requestBody(payoutRequestBody);
-    const payoutResponse = await paypalClient.execute(payoutRequest);
-
-    if (![201, 202].includes(payoutResponse.statusCode))
-      throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Payout failed');
-
-    // Update party and chat group atomically
+    // Step 7: Update party and chat group atomically
     const chatGroup = await ChatGroup.findOne({
       partyId: payload.partyId,
     }).session(session);
@@ -460,12 +440,11 @@ export const joinParty = async (userId: string, payload: JoinPartyPayload) => {
       party.income += hostAmount;
       party.soldTicket += payload.ticket;
       await party.save({ session });
-
       await session.commitTransaction();
       return party;
     }
 
-    // If no chat group, create one
+    // If no chat group exists, create a new one
     await ChatGroup.create(
       [
         {
