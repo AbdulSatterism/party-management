@@ -46,6 +46,46 @@ export const payoutToHost = async (
   return response.data;
 };
 
+export const payoutToUser = async (
+  receiverEmail: string,
+  amount: number,
+  partyName: string,
+  partyId: string,
+) => {
+  const accessToken = await getPayPalAccessToken();
+
+  const payoutBody = {
+    sender_batch_header: {
+      sender_batch_id: `refund_${Date.now()}_${partyId}`,
+      email_subject: 'Refund for leaving party',
+    },
+    items: [
+      {
+        recipient_type: 'EMAIL',
+        amount: {
+          value: amount.toFixed(2),
+          currency: 'USD',
+        },
+        receiver: receiverEmail,
+        note: `Refund for leaving party: ${partyName}`,
+        sender_item_id: `item_${Date.now()}`,
+      },
+    ],
+  };
+
+  const response = await axios.post(
+    'https://api.sandbox.paypal.com/v1/payments/payouts',
+    payoutBody,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+  return response.data;
+};
+
 // Helper function to get PayPal access token
 const getPayPalAccessToken = async (): Promise<string> => {
   const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');

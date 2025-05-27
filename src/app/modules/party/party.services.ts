@@ -403,7 +403,16 @@ export const joinParty = async (userId: string, payload: JoinPartyPayload) => {
 
     // Step 5: Save payment information
     const captureId = captureResponse.purchase_units[0].payments.captures[0].id;
+    //for save payment email in user paypalAccount
+    const paypalEmail = captureResponse.payer?.email_address;
     const captureStatus = captureResponse.status;
+
+    await User.findByIdAndUpdate(
+      userId,
+      { paypalAccount: paypalEmail },
+      { session },
+    );
+
     await Payment.create({
       userId,
       partyId: payload.partyId,
@@ -471,12 +480,6 @@ export const joinParty = async (userId: string, payload: JoinPartyPayload) => {
     session.endSession();
   }
 };
-
-//TODO : when leave party then also remove from chatting group and also remove from party participants and also add the total sits
-//TODO : if party date remaining less than 7 days they can't leave from the party.
-//TODO : when revome from party return amount deduct 10%
-
-//TODO not impelmented payment yet so skip payment part now
 
 const leaveParty = async (userId: string, partyId: string) => {
   const session = await mongoose.startSession();
@@ -578,6 +581,123 @@ const leaveParty = async (userId: string, partyId: string) => {
     session.endSession();
   }
 };
+
+// export const leaveParty = async (userId: string, partyId: string) => {
+//   const session = await mongoose.startSession();
+//   try {
+//     session.startTransaction();
+
+//     const [userExists, party, chatGroup] = await Promise.all([
+//       User.isExistUserById(userId), // Ensure this checks session if needed or do normal findById with session
+//       Party.findById(partyId).session(session),
+//       ChatGroup.findOne({ partyId }).session(session),
+//     ]);
+
+//     if (!userExists) {
+//       await session.abortTransaction();
+//       throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+//     }
+
+//     if (!party) {
+//       await session.abortTransaction();
+//       throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
+//     }
+
+//     if (!chatGroup) {
+//       await session.abortTransaction();
+//       throw new AppError(StatusCodes.NOT_FOUND, 'Chat group not found!');
+//     }
+
+//     // Check date diff
+//     const currentDate = new Date();
+//     const partyDate = new Date(party.partyDate);
+//     const daysLeft = Math.ceil(
+//       (partyDate.getTime() - currentDate.getTime()) / (1000 * 3600 * 24),
+//     );
+
+//     if (daysLeft < 7) {
+//       await session.abortTransaction();
+//       throw new AppError(
+//         StatusCodes.BAD_REQUEST,
+//         'Cannot leave party within 7 days of the event!',
+//       );
+//     }
+
+//     const isParticipant = party.participants?.some(
+//       p => p.toString() === userId.toString(),
+//     );
+
+//     if (!isParticipant) {
+//       await session.abortTransaction();
+//       throw new AppError(StatusCodes.BAD_REQUEST, 'You are not a participant!');
+//     }
+
+//     const userInGroup = chatGroup.members.find(
+//       m => m.userId.toString() === userId,
+//     );
+//     if (!userInGroup) {
+//       await session.abortTransaction();
+//       throw new AppError(
+//         StatusCodes.BAD_REQUEST,
+//         'User not found in chat group!',
+//       );
+//     }
+
+//     const ticketsToReturn = userInGroup.ticket;
+//     const incomeToDeduct = +(ticketsToReturn * party.partyFee * 0.9).toFixed(2);
+
+//     const userDoc = await User.findById(userId).session(session);
+//     if (!userDoc?.paypalAccount) {
+//       await session.abortTransaction();
+//       throw new AppError(
+//         StatusCodes.BAD_REQUEST,
+//         'User PayPal account not found!',
+//       );
+//     }
+
+//     if (!party.paypalAccount) {
+//       await session.abortTransaction();
+//       throw new AppError(
+//         StatusCodes.BAD_REQUEST,
+//         'Party host PayPal account not found!',
+//       );
+//     }
+
+//     // Refund payout
+//     await payoutToUser(
+//       userDoc.paypalAccount,
+//       incomeToDeduct,
+//       party.partyName,
+//       partyId,
+//     );
+
+//     // Remove user from chat group
+//     await ChatGroup.findByIdAndUpdate(
+//       chatGroup._id,
+//       { $pull: { members: { userId: new mongoose.Types.ObjectId(userId) } } },
+//       { session, new: true },
+//     );
+
+//     // Update party participants & stats
+//     party.participants = (party.participants || []).filter(
+//       p => p.toString() !== userId.toString(),
+//     );
+//     party.totalSits += ticketsToReturn;
+//     party.soldTicket -= ticketsToReturn;
+//     party.income -= incomeToDeduct;
+
+//     await party.save({ session });
+
+//     await session.commitTransaction();
+
+//     return party;
+//   } catch (error) {
+//     await session.abortTransaction();
+//     throw error;
+//   } finally {
+//     session.endSession();
+//   }
+// };
 
 export const PartyService = {
   createParyty,
