@@ -523,6 +523,7 @@ const leaveParty = async (userId: string, partyId: string) => {
     ).toFixed(2); // 90% refund amount
 
     // Issue payout refund from admin account to user
+
     const userPaypalEmail = await User.findById(userId)
       .select('paypalAccount')
       .lean();
@@ -532,6 +533,7 @@ const leaveParty = async (userId: string, partyId: string) => {
         'User PayPal email not found for refund!',
       );
     }
+
     await payoutToUser(
       userPaypalEmail.paypalAccount,
       refundAmount,
