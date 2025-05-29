@@ -5,7 +5,7 @@ import { payoutToHost } from '../app/modules/payment/utils';
 
 const schedulePayoutCron = () => {
   // Runs every day at 18:48 server time
-  cron.schedule('32 22 * * *', async () => {
+  cron.schedule('0 10 * * *', async () => {
     try {
       logger.info('Cron job started: Checking parties for payout');
 
