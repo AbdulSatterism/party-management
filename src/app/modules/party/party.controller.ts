@@ -123,6 +123,16 @@ const leaveParty = catchAsync(async (req, res) => {
   });
 });
 
+const allParty = catchAsync(async (req, res) => {
+  const result = await PartyService.allParties();
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: ' successfully',
+    data: result,
+  });
+});
+
 export const PartyController = {
   createParty,
   updateParty,
@@ -131,4 +141,5 @@ export const PartyController = {
   getAllPartiesByHost,
   joinParty,
   leaveParty,
+  allParty,
 };

@@ -9,6 +9,8 @@ import config from './config';
 import { socketHelper } from './helpers/socketHelper';
 import { errorLogger, logger } from './shared/logger';
 import seedAdmin from './DB';
+import schedulePayoutCron from './util/payoutHost';
+// import schedulePayoutCron from './util/payoutHost';
 
 //uncaught exception
 process.on('uncaughtException', error => {
@@ -32,6 +34,9 @@ async function main() {
     });
 
     await seedAdmin();
+
+    // Schedule payout cron after DB connection & server start
+    schedulePayoutCron();
 
     //socket
     const io = new Server(server, {

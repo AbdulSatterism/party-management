@@ -680,6 +680,47 @@ const leaveParty = async (userId: string, partyId: string) => {
 //   }
 // };
 
+//* find all parties which is left less then or equal 3 day
+
+// const allParties = async () => {
+//   const today = new Date();
+//   const futureDate = new Date();
+//   futureDate.setDate(today.getDate() + 3);
+
+//   // Convert to 'YYYY-MM-DD' string (date only)
+//   const startDateStr = today.toISOString().split('T')[0];
+//   const endDateStr = futureDate.toISOString().split('T')[0];
+
+//   // Query assuming partyDate stored as 'YYYY-MM-DD' string
+//   const parties = await Party.find({
+//     partyDate: {
+//       $gte: startDateStr,
+//       $lte: endDateStr,
+//     },
+//   });
+
+//   return parties;
+// };
+
+const allParties = async () => {
+  const today = new Date();
+  const futureDate = new Date();
+
+  const normalizeDateToISO = (date: Date) => date.toISOString().split('T')[0];
+
+  const startDateStr = normalizeDateToISO(today);
+  futureDate.setDate(today.getDate() + 3);
+  const endDateStr = normalizeDateToISO(futureDate);
+
+  const parties = await Party.find({
+    partyDate: { $gte: startDateStr, $lte: endDateStr },
+    income: { $gt: 0 },
+    paypalAccount: { $exists: true, $ne: null },
+  }).select('_id partyName partyDate partyFee address income paypalAccount');
+
+  return parties;
+};
+
 export const PartyService = {
   createParyty,
   updateParty,
@@ -688,4 +729,5 @@ export const PartyService = {
   getAllPartiesByHost,
   joinParty,
   leaveParty,
+  allParties,
 };
