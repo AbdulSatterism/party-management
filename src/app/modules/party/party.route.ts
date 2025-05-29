@@ -57,10 +57,4 @@ route.post(
   PartyController.leaveParty,
 );
 
-route.get(
-  '/cc',
-
-  PartyController.allParty,
-);
-
 export const partyRoute = route;

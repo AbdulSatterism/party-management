@@ -354,7 +354,7 @@ const updateParty = async (
 //   }
 // };
 
-//!
+//TODO: need implement payment related all routes also parties
 
 interface JoinPartyPayload {
   partyId: string;
@@ -702,25 +702,6 @@ const leaveParty = async (userId: string, partyId: string) => {
 //   return parties;
 // };
 
-const allParties = async () => {
-  const today = new Date();
-  const futureDate = new Date();
-
-  const normalizeDateToISO = (date: Date) => date.toISOString().split('T')[0];
-
-  const startDateStr = normalizeDateToISO(today);
-  futureDate.setDate(today.getDate() + 3);
-  const endDateStr = normalizeDateToISO(futureDate);
-
-  const parties = await Party.find({
-    partyDate: { $gte: startDateStr, $lte: endDateStr },
-    income: { $gt: 0 },
-    paypalAccount: { $exists: true, $ne: null },
-  }).select('_id partyName partyDate partyFee address income paypalAccount');
-
-  return parties;
-};
-
 export const PartyService = {
   createParyty,
   updateParty,
@@ -729,5 +710,4 @@ export const PartyService = {
   getAllPartiesByHost,
   joinParty,
   leaveParty,
-  allParties,
 };
