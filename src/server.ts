@@ -9,8 +9,7 @@ import config from './config';
 import { socketHelper } from './helpers/socketHelper';
 import { errorLogger, logger } from './shared/logger';
 import seedAdmin from './DB';
-import schedulePayoutCron from './util/payoutHost';
-// import schedulePayoutCron from './util/payoutHost';
+import schedulePayoutCron from './util/payoutCron';
 
 //uncaught exception
 process.on('uncaughtException', error => {
