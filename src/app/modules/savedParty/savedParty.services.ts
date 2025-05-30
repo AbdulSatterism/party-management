@@ -37,13 +37,19 @@ const getMySavedParties = async (userId: string) => {
   }
 
   const savedParties = await SavedParty.find({ userId })
-    .populate({
-      path: 'partyId',
-      populate: { path: 'userId', select: 'name email image' },
-    })
-    .populate('userId', 'name email image');
+    .select('-_id -userId -createdAt -updatedAt -__v')
+    .populate('partyId')
+    .lean();
 
-  return savedParties;
+  const partiesOnly = savedParties.map(item => item.partyId);
+
+  // const savedParties = await SavedParty.find({ userId }).populate({
+  //   path: 'partyId',
+  // populate: { path: 'userId', select: 'name email image' },
+  // });
+  // .populate('userId', 'name email image');
+
+  return partiesOnly;
 };
 
 const removeSavedParty = async (userId: string, partyId: string) => {
