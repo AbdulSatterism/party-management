@@ -14,7 +14,7 @@ router.get(
 router.get(
   '/single-host-payout/:id',
   auth(USER_ROLES.ADMIN),
-  HostPayoutController.allHostPayout,
+  HostPayoutController.singlePayout,
 );
 
 export const hostPayoutRoutes = router;
