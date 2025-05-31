@@ -2,9 +2,12 @@ import cron from 'node-cron';
 import { errorLogger, logger } from '../shared/logger';
 import { Party } from '../app/modules/party/party.model';
 import { payoutToHost } from '../app/modules/payment/utils';
+import { HostPayoutService } from '../app/modules/payoutHost/payoutHost.service';
+import mongoose from 'mongoose';
 
 const schedulePayoutCron = () => {
   // Runs every day at 10  server time
+
   cron.schedule('0 10 * * *', async () => {
     try {
       logger.info('Cron job started: Checking parties for payout');
@@ -41,12 +44,25 @@ const schedulePayoutCron = () => {
           );
 
           // Perform payout to host PayPal account
-          await payoutToHost(
+          const payoutResponse = await payoutToHost(
             party.paypalAccount,
             payoutAmount,
             party.partyName,
             party._id?.toString() || '',
           );
+
+          const paypalBatchId = payoutResponse.batch_header?.payout_batch_id;
+
+          // Save payout record for this host payout
+          await HostPayoutService.createHostPayout({
+            userId: party.userId,
+            partyId: new mongoose.Types.ObjectId(party._id?.toString()) || '',
+            email: party.paypalAccount,
+            amount: payoutAmount,
+            status: 'COMPLETED',
+            paypalBatchId,
+            note: `Payout for party host: ${party.partyName}`,
+          });
 
           // Reset income after successful payout
           party.income = 0;

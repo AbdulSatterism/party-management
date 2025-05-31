@@ -539,6 +539,7 @@ const leaveParty = async (userId: string, partyId: string) => {
       refundAmount,
       isPartyExist.partyName,
       partyId,
+      userId,
     );
 
     // Update chat group and party accordingly

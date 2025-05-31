@@ -12,6 +12,8 @@ import { shopCategoryRoutes } from '../app/modules/shopCategory/shopCategory.rou
 import { ShopRoutes } from '../app/modules/shop/shop.route';
 import { ChatGroupRoutes } from '../app/modules/chatGroup/chatGroup.route';
 import { messageRoutes } from '../app/modules/message/message.route';
+import { hostPayoutRoutes } from '../app/modules/payoutHost/payoutHost.route';
+import { refundUserRoutes } from '../app/modules/payoutUser/payoutUser.route';
 
 const router = express.Router();
 
@@ -30,6 +32,8 @@ const apiRoutes = [
   { path: '/shop', route: ShopRoutes },
   { path: '/chat-group', route: ChatGroupRoutes },
   { path: '/message', route: messageRoutes },
+  { path: '/payout', route: hostPayoutRoutes },
+  { path: '/refund', route: refundUserRoutes },
 
   // { path: '/payment', route: PaymentRoutes },
   // { path: '/package', route: packageRoute },

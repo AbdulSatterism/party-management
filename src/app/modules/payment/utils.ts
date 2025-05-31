@@ -3,6 +3,8 @@ import config from '../../../config';
 import axios from 'axios';
 import { Buffer } from 'buffer';
 import { errorLogger } from '../../../shared/logger';
+import { PayoutUserService } from '../payoutUser/payoutUser.service';
+import mongoose from 'mongoose';
 
 const clientId = config.paypal.client_id!;
 const clientSecret = config.paypal.client_secret!;
@@ -38,48 +40,6 @@ export const captureOrder = async (orderId: string) => {
   );
   return response.data;
 };
-
-// Payout 90% amount to party host
-// export const payoutToHost = async (
-//   receiverEmail: string,
-//   amount: number,
-//   partyName: string,
-//   partyId: string,
-// ) => {
-//   const accessToken = await getPayPalAccessToken();
-
-//   const payoutBody = {
-//     sender_batch_header: {
-//       sender_batch_id: `payout_${Date.now()}_${partyId}`,
-//       email_subject: 'You have a payout for your party',
-//     },
-//     items: [
-//       {
-//         recipient_type: 'EMAIL',
-//         amount: {
-//           value: amount.toFixed(2),
-//           currency: 'USD',
-//         },
-//         receiver: receiverEmail,
-//         note: `Payout for party host: ${partyName}`,
-//         sender_item_id: `item_${Date.now()}`,
-//       },
-//     ],
-//   };
-
-//   const response = await axios.post(
-//     'https://api.sandbox.paypal.com/v1/payments/payouts', // live endpoint for production
-//     payoutBody,
-//     {
-//       headers: {
-//         Authorization: `Bearer ${accessToken}`,
-//         'Content-Type': 'application/json',
-//       },
-//     },
-//   );
-
-//   return response.data;
-// };
 
 export const payoutToHost = async (
   receiverEmail: string,
@@ -136,6 +96,7 @@ export const payoutToUser = async (
   amount: number,
   partyName: string,
   partyId: string,
+  userId: string,
 ) => {
   const accessToken = await getPayPalAccessToken();
 
@@ -168,6 +129,19 @@ export const payoutToUser = async (
       },
     },
   );
+
+  const paypalBatchId = response.data.batch_header?.payout_batch_id;
+
+  // Save payout info after successful payout
+  await PayoutUserService.createUserPayout({
+    userId: new mongoose.Types.ObjectId(userId),
+    partyId: new mongoose.Types.ObjectId(partyId),
+    email: receiverEmail,
+    amount,
+    status: 'COMPLETED',
+    paypalBatchId,
+    note: `Refund for leaving party: ${partyName}`,
+  });
 
   return response.data;
 };
