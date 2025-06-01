@@ -14,6 +14,12 @@ const getAllPayouts = async (query: Record<string, unknown>) => {
   const totalData = await HostPayout.countDocuments();
   const totalPages = Math.ceil(totalData / pageSize);
 
+  const totalAmountResult = await HostPayout.aggregate([
+    { $group: { _id: null, totalAmount: { $sum: '$amount' } } },
+  ]);
+  const totalAmount =
+    totalAmountResult.length > 0 ? totalAmountResult[0].totalAmount : 0;
+
   const data = await HostPayout.find()
     .populate('userId', 'name email')
     .populate('partyId', 'partyName partyDate')
@@ -28,6 +34,7 @@ const getAllPayouts = async (query: Record<string, unknown>) => {
       totalPages,
       currentPage,
       pageSize,
+      totalAmount,
     },
   };
 };
