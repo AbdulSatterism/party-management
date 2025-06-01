@@ -57,4 +57,16 @@ route.post(
   PartyController.leaveParty,
 );
 
+route.get(
+  '/upcoming-parties',
+  auth(USER_ROLES.USER, USER_ROLES.HOST, USER_ROLES.ADMIN),
+  PartyController.upcommingParties,
+);
+
+route.get(
+  '/past-parties',
+  auth(USER_ROLES.USER, USER_ROLES.HOST, USER_ROLES.ADMIN),
+  PartyController.pastParties,
+);
+
 export const partyRoute = route;

@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
 import { IParty } from './party.interface';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { Party } from './party.model';
 import unlinkFile from '../../../shared/unlinkFile';
 import { ChatGroup } from '../chatGroup/chatGroup.model';
@@ -703,6 +703,43 @@ const leaveParty = async (userId: string, partyId: string) => {
 //   return parties;
 // };
 
+const upcomingParties = async (userId: string) => {
+  const isUserExist = await User.isExistUserById(userId);
+  if (!isUserExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const parties = await Party.find({
+    partyDate: {
+      $gte: todayStr,
+    },
+    participants: new Types.ObjectId(userId), // <== this ensures user is included
+  });
+
+  return parties;
+};
+
+const pastParties = async (userId: string) => {
+  const isUserExist = await User.isExistUserById(userId);
+  if (!isUserExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+
+  const today = new Date();
+
+  const startDateStr = today.toISOString().split('T')[0];
+
+  const parties = await Party.find({
+    partyDate: {
+      $lt: startDateStr,
+    },
+    participants: new Types.ObjectId(userId), // <== this ensures user is included
+  });
+
+  return parties;
+};
+
 export const PartyService = {
   createParyty,
   updateParty,
@@ -711,4 +748,6 @@ export const PartyService = {
   getAllPartiesByHost,
   joinParty,
   leaveParty,
+  upcomingParties,
+  pastParties,
 };

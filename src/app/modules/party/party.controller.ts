@@ -123,6 +123,28 @@ const leaveParty = catchAsync(async (req, res) => {
   });
 });
 
+const upcommingParties = catchAsync(async (req, res) => {
+  const result = await PartyService.upcomingParties(req?.user?.id);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'upcomming parties',
+    data: result,
+  });
+});
+
+const pastParties = catchAsync(async (req, res) => {
+  const result = await PartyService.pastParties(req?.user?.id);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'past parties',
+    data: result,
+  });
+});
+
 export const PartyController = {
   createParty,
   updateParty,
@@ -131,4 +153,6 @@ export const PartyController = {
   getAllPartiesByHost,
   joinParty,
   leaveParty,
+  upcommingParties,
+  pastParties,
 };
