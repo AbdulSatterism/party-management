@@ -713,7 +713,12 @@ const upcomingParties = async (userId: string) => {
       $gte: todayStr,
     },
     participants: new Types.ObjectId(userId), // <== this ensures user is included
-  }).populate('userId', 'name email');
+  })
+    .populate([
+      { path: 'participants', select: 'name email image' },
+      { path: 'userId', select: 'name email image' },
+    ])
+    .lean();
 
   return parties;
 };
@@ -733,7 +738,12 @@ const pastParties = async (userId: string) => {
       $lt: startDateStr,
     },
     participants: new Types.ObjectId(userId), // <== this ensures user is included
-  }).populate('userId', 'name email');
+  })
+    .populate([
+      { path: 'participants', select: 'name email image' },
+      { path: 'userId', select: 'name email image' },
+    ])
+    .lean();
 
   return parties;
 };
@@ -746,7 +756,12 @@ const paidParties = async (userId: string) => {
 
   const parties = await Party.find({
     participants: new Types.ObjectId(userId), // <== this ensures user is included
-  }).populate('userId', 'name email');
+  })
+    .populate([
+      { path: 'participants', select: 'name email image' },
+      { path: 'userId', select: 'name email image' },
+    ])
+    .lean();
 
   return parties;
 };

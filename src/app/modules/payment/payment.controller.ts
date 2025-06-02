@@ -2,56 +2,34 @@ import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { PaymentService } from './payment.service';
+import { createPaymentIntent } from './utils';
+import AppError from '../../errors/AppError';
 
-// const createPaymentUrl = async (req: Request, res: Response) => {
-//   try {
-//     const { partyId, userId, amount } = req.body;
+const createPayment = catchAsync(async (req, res) => {
+  const userId = req?.user?.id;
 
-//     // Validate input
-//     if (!partyId || !userId || !amount) {
-//       return sendResponse(res, 400, 'Missing partyId, userId, or amount');
-//     }
+  const { partyId, amount } = req.body;
 
-//     // Get PayPal payment link
-//     const paymentUrl = await createPayPalOrder(partyId, userId, amount);
+  // Validate input
+  if (!partyId || !userId || !amount) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
 
-//     // Send response with the PayPal payment link
-//     return sendResponse(res, 200, 'Payment link created successfully', {
-//       paymentUrl,
-//     });
-//   } catch (error: any) {
-//     return sendResponse(
-//       res,
-//       500,
-//       error.message || 'Failed to create payment link',
-//     );
-//   }
-// };
+  // Get PayPal payment link
+  const paymentUrl = await createPaymentIntent(partyId, userId, amount);
 
-// const createPayment = catchAsync(async (req, res) => {
-//   try {
-//     const { partyId, userId, amount } = req.body;
+  // Send response with the PayPal payment link
+  return sendResponse(res, 200, 'Payment link created successfully', {
+    paymentUrl,
+  });
 
-//     // Validate input
-//     if (!partyId || !userId || !amount) {
-//       return sendResponse(res, 400, 'Missing partyId, userId, or amount');
-//     }
-
-//     // Get PayPal payment link
-//     const paymentUrl = await createPaymentIntent(partyId, userId, amount);
-
-//     // Send response with the PayPal payment link
-//     return sendResponse(res, 200, 'Payment link created successfully', {
-//       paymentUrl,
-//     });
-
-//   sendResponse(res, {
-//     success: true,
-//     statusCode: StatusCodes.OK,
-//     message: 'all payment returns successfully',
-//     data: result,
-//   });
-// });
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'all payment returns successfully',
+    data: result,
+  });
+});
 
 const allPayment = catchAsync(async (req, res) => {
   const result = await PaymentService.allPayments(req.query);

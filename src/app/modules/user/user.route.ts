@@ -20,7 +20,7 @@ router.get('/all-user', auth(USER_ROLES.ADMIN), UserController.getAllUser);
 router.patch(
   '/update-profile',
   fileUploadHandler(),
-  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN, USER_ROLES.HOST),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = JSON.parse(req.body.data);
     next();
@@ -31,7 +31,7 @@ router.patch(
 
 router.get(
   '/user',
-  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER, USER_ROLES.HOST),
   UserController.getUserProfile,
 );
 
@@ -44,7 +44,7 @@ router.get(
 // get user by search by phone
 router.get(
   '/user-search',
-  auth(USER_ROLES.ADMIN, USER_ROLES.USER),
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER, USER_ROLES.HOST),
   UserController.searchByPhone,
 );
 
