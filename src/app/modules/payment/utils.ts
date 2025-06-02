@@ -5,6 +5,7 @@ import { Buffer } from 'buffer';
 import { errorLogger } from '../../../shared/logger';
 import { PayoutUserService } from '../payoutUser/payoutUser.service';
 import mongoose from 'mongoose';
+import { Party } from '../party/party.model';
 
 const clientId = config.paypal.client_id!;
 const clientSecret = config.paypal.client_secret!;
@@ -144,4 +145,63 @@ export const payoutToUser = async (
   });
 
   return response.data;
+};
+
+export const createPaymentIntent = async (
+  partyId: string,
+  userId: string,
+  amount: string,
+) => {
+  const accessToken = await getPayPalAccessToken();
+
+  // Check if the party has available seats and if the user is already a participant
+  const party = await Party.findById(partyId);
+  if (!party) {
+    throw new Error('Party not found');
+  }
+
+  if (party.soldTicket >= party.totalSits) {
+    throw new Error('No available seats for this party');
+  }
+
+  const id = new mongoose.Types.ObjectId(userId);
+
+  if (party?.participants?.includes(id)) {
+    throw new Error('User has already joined this party');
+  }
+
+  // Create PayPal Order
+  const response = await axios.post(
+    'https://api.sandbox.paypal.com/v2/checkout/orders', // Use live endpoint for production
+    {
+      intent: 'CAPTURE',
+      purchase_units: [
+        {
+          amount: {
+            currency_code: 'USD',
+            value: amount,
+          },
+        },
+      ],
+      application_context: {
+        return_url: 'https://your-frontend-url.com/payment-success',
+        cancel_url: 'https://your-frontend-url.com/payment-cancel',
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  const approvalLink = response.data.links.find(
+    (link: any) => link.rel === 'approve',
+  );
+  if (!approvalLink) {
+    throw new Error('No approval link found');
+  }
+
+  return approvalLink.href;
 };
