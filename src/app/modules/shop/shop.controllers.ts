@@ -27,7 +27,9 @@ const createShop = catchAsync(async (req, res) => {
 });
 
 const getAllShopItems = catchAsync(async (req, res) => {
-  const result = await ShopService.getAllShopItems();
+  const result = await ShopService.getAllShopItems(
+    req?.query?.search as string,
+  );
 
   sendResponse(res, {
     success: true,

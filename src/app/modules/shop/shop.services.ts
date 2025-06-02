@@ -29,13 +29,17 @@ const createShopItem = async (userId: string, payload: IShopItem) => {
   return shopItem;
 };
 
-const getAllShopItems = async () => {
-  const shopItems = await Shop.find({}).populate(
-    'category',
-    'categoryName _id',
-  );
+const getAllShopItems = async (search?: string) => {
+  // If no search term, return all items
+  if (!search) {
+    return Shop.find({}).populate('category', 'categoryName _id').lean();
+  }
 
-  return shopItems;
+  const regex = new RegExp(search.split(' ').join('|'), 'i');
+
+  return Shop.find({ title: { $regex: regex } })
+    .populate('category', 'categoryName _id')
+    .lean();
 };
 
 const getShopItemById = async (id: string) => {
