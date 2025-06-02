@@ -145,6 +145,17 @@ const pastParties = catchAsync(async (req, res) => {
   });
 });
 
+const paidParties = catchAsync(async (req, res) => {
+  const result = await PartyService.paidParties(req?.user?.id);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'paid parties',
+    data: result,
+  });
+});
+
 export const PartyController = {
   createParty,
   updateParty,
@@ -155,4 +166,5 @@ export const PartyController = {
   leaveParty,
   upcommingParties,
   pastParties,
+  paidParties,
 };

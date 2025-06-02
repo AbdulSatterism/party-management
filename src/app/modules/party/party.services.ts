@@ -738,6 +738,19 @@ const pastParties = async (userId: string) => {
   return parties;
 };
 
+const paidParties = async (userId: string) => {
+  const isUserExist = await User.isExistUserById(userId);
+  if (!isUserExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+
+  const parties = await Party.find({
+    participants: new Types.ObjectId(userId), // <== this ensures user is included
+  });
+
+  return parties;
+};
+
 export const PartyService = {
   createParyty,
   updateParty,
@@ -748,4 +761,5 @@ export const PartyService = {
   leaveParty,
   upcomingParties,
   pastParties,
+  paidParties,
 };

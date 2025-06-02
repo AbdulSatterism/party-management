@@ -69,4 +69,10 @@ route.get(
   PartyController.pastParties,
 );
 
+route.get(
+  '/paid-parties',
+  auth(USER_ROLES.USER, USER_ROLES.HOST, USER_ROLES.ADMIN),
+  PartyController.paidParties,
+);
+
 export const partyRoute = route;
