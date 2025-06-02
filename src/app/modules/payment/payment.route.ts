@@ -5,6 +5,12 @@ import { PaymentController } from './payment.controller';
 
 const router = express.Router();
 
+router.post(
+  '/create-payment',
+  auth(USER_ROLES.ADMIN, USER_ROLES.USER, USER_ROLES.HOST),
+  PaymentController.createPayment,
+);
+
 router.get(
   '/all-payment',
   auth(USER_ROLES.ADMIN),

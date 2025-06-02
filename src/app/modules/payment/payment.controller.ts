@@ -11,23 +11,25 @@ const createPayment = catchAsync(async (req, res) => {
   const { partyId, amount } = req.body;
 
   // Validate input
-  if (!partyId || !userId || !amount) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  if (!partyId) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'missing partyId');
+  }
+  if (!userId) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'missing  userId');
+  }
+
+  if (!amount) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'missing amount');
   }
 
   // Get PayPal payment link
   const paymentUrl = await createPaymentIntent(partyId, userId, amount);
 
-  // Send response with the PayPal payment link
-  return sendResponse(res, 200, 'Payment link created successfully', {
-    paymentUrl,
-  });
-
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
-    message: 'all payment returns successfully',
-    data: result,
+    message: 'payment intent created successfully',
+    data: paymentUrl,
   });
 });
 
@@ -56,4 +58,5 @@ const singlePayment = catchAsync(async (req, res) => {
 export const PaymentController = {
   allPayment,
   singlePayment,
+  createPayment,
 };
