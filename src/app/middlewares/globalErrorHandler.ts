@@ -15,7 +15,7 @@ import { errorLogger } from '../../shared/logger';
 
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   config.node_env === 'development'
-    ? console.log('🚨 globalErrorHandler ~~ ', err)
+    ? errorLogger.error('🚨 globalErrorHandler ~~ ', err)
     : errorLogger.error('🚨 globalErrorHandler ~~ ', err);
 
   let statusCode = 500;
