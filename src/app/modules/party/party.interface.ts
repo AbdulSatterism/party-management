@@ -7,17 +7,17 @@ export interface IParty {
   partyTimeStart: string;
   image: string;
   partyTimeEnd: string;
-  partyDate: string;
+  partyDate: Date;
   income: number;
   participants?: Types.ObjectId[];
   totalSits: number;
   partyFee: number;
-  country: string;
+  country?: string;
   address: string;
   soldTicket: number;
   location: {
     type: string;
-    coordinates: number[]; //[example:longtitude->90.413, latitude->23.456]
+    coordinates: [number, number]; //[example:longtitude->90.413, latitude->23.456]
   };
   paypalAccount: string;
 }

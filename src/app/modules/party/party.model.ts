@@ -12,8 +12,8 @@ const partySchema = new Schema<IPartyDoc>(
     image: { type: String, required: true },
     income: { type: Number, default: 0 },
     partyTimeEnd: { type: String, required: true },
-    partyDate: { type: String, required: true },
-    country: { type: String, required: true },
+    partyDate: { type: Date, required: true },
+    country: { type: String, required: false },
     address: { type: String, required: true },
     soldTicket: { type: Number, default: 0 },
     location: {
