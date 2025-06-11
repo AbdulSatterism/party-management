@@ -4,7 +4,6 @@ import sendResponse from '../../../shared/sendResponse';
 import { PartyService } from './party.services';
 
 const createParty = catchAsync(async (req, res) => {
-  console.log(req.body);
   const userId = req.user.id;
 
   let image;
