@@ -22,14 +22,11 @@ const chattingGroupbySpecificUser = async (
     baseQuery['groupName'] = { $regex: search, $options: 'i' }; // Case-insensitive regex search
   }
 
-  const groups = await ChatGroup.find(baseQuery);
+  const groups = await ChatGroup.find(baseQuery)
+    .populate('partyId', 'image partyDate -_id')
+    .lean();
   return groups;
 };
-
-//* add new member in the group
-//* member only can add like have userId and guest if userId matched this userId then this user can add but if limit 0 or 1 then can't add others, if limit have 2 then can add 1 , when add a user this user added in the guest and decrease the limit : if limit 0 or 1 can't added
-
-//TODO: add userId and guestId in the group
 
 const addNewMember = async (
   userId: string,
