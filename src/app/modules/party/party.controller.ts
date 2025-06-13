@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { PartyService } from './party.services';
+import { SavedParty } from '../savedParty/savedParty.model';
 
 const createParty = catchAsync(async (req, res) => {
   const userId = req.user.id;
@@ -33,6 +34,8 @@ const getNearbyParties = catchAsync(async (req, res) => {
   const search = req.query.search ? String(req.query.search) : undefined;
   const country = req.query.country ? String(req.query.country) : undefined;
 
+  const userId = req.user.id;
+
   const parties = await PartyService.getNearbyParties({
     lat,
     lon,
@@ -41,11 +44,23 @@ const getNearbyParties = catchAsync(async (req, res) => {
     country,
   });
 
+  // Get all saved party IDs for this user
+  const savedParties = await SavedParty.find({ userId }).select('partyId');
+  const savedPartyIds = savedParties.map(p => p.partyId.toString());
+
+  // Attach isSaved field
+  const partiesWithSaved = parties.map(party => {
+    return {
+      ...party, // if party is a Mongoose doc
+      isSaved: savedPartyIds.includes(party._id.toString()),
+    };
+  });
+
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
     message: 'Nearest all parties',
-    data: parties,
+    data: partiesWithSaved,
   });
 });
 

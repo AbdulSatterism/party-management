@@ -32,7 +32,11 @@ route.patch(
   PartyController.updateParty,
 );
 
-route.get('/get-nearby-parties', PartyController.getNearbyParties);
+route.get(
+  '/get-nearby-parties',
+  auth(USER_ROLES.USER, USER_ROLES.HOST, USER_ROLES.ADMIN),
+  PartyController.getNearbyParties,
+);
 
 // all parties by specific host
 route.get(
