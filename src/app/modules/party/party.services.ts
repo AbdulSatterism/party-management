@@ -35,12 +35,13 @@ const getNearbyParties = async (query: {
   days?: number;
   search?: string;
   country?: string;
+  userId: string; // ✅ add this
 }) => {
-  const { lat, lon, days, search, country } = query;
+  const { lat, lon, days, search, country, userId } = query;
 
   const pipeline: any[] = [];
 
-  // Add geoNear if latitude and longitude are provided
+  // Geo query
   if (lat && lon) {
     pipeline.push({
       $geoNear: {
@@ -50,38 +51,33 @@ const getNearbyParties = async (query: {
         },
         distanceField: 'distance',
         spherical: true,
-        distanceMultiplier: 0.001, // Convert meters to kilometers
+        distanceMultiplier: 0.001,
       },
     });
   }
 
   const matchConditions: any = {};
 
-  // Filter by partyDate (if days are provided)
   if (days) {
     const today = new Date();
     const futureDate = new Date();
     futureDate.setDate(today.getDate() + days);
-
     matchConditions.partyDate = {
       $gte: today.toISOString().split('T')[0],
       $lte: futureDate.toISOString().split('T')[0],
     };
   }
 
-  // Filter by partyName (partial search, case-insensitive)
   if (search) {
     const safeSearch = search.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
     matchConditions.partyName = { $regex: `.*${safeSearch}.*`, $options: 'i' };
   }
 
-  // Filter by country (partial match, case-insensitive)
   if (country) {
     const safeCountry = country.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
     matchConditions.country = { $regex: `.*${safeCountry}.*`, $options: 'i' };
   }
 
-  // If we have any match conditions, push the $match stage
   if (Object.keys(matchConditions).length > 0) {
     pipeline.push({ $match: matchConditions });
   }
@@ -90,8 +86,7 @@ const getNearbyParties = async (query: {
     pipeline.push({ $match: {} });
   }
 
-  // Add lookup stage for userId
-  // Add lookup for userId
+  // Lookup user details
   pipeline.push({
     $lookup: {
       from: 'users',
@@ -111,6 +106,14 @@ const getNearbyParties = async (query: {
   });
 
   pipeline.push({
+    $unwind: {
+      path: '$userId',
+      preserveNullAndEmptyArrays: true,
+    },
+  });
+
+  // Lookup participants
+  pipeline.push({
     $lookup: {
       from: 'users',
       localField: 'participants',
@@ -128,11 +131,38 @@ const getNearbyParties = async (query: {
     },
   });
 
-  // Unwind the userId array to object
+  // ✅ Add this stage to check if the user has saved the party
   pipeline.push({
-    $unwind: {
-      path: '$userId',
-      preserveNullAndEmptyArrays: true,
+    $lookup: {
+      from: 'savedparties',
+      let: { partyId: '$_id' },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $eq: ['$partyId', '$$partyId'] },
+                { $eq: ['$userId', new mongoose.Types.ObjectId(userId)] },
+              ],
+            },
+          },
+        },
+      ],
+      as: 'savedStatus',
+    },
+  });
+
+  // ✅ Add a new field: isSaved = savedStatus.length > 0
+  pipeline.push({
+    $addFields: {
+      isSaved: { $gt: [{ $size: '$savedStatus' }, 0] },
+    },
+  });
+
+  // ✅ Optionally remove the savedStatus array from the final output
+  pipeline.push({
+    $project: {
+      savedStatus: 0,
     },
   });
 
