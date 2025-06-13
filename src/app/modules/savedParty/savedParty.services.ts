@@ -38,7 +38,19 @@ const getMySavedParties = async (userId: string) => {
 
   const savedParties = await SavedParty.find({ userId })
     .select('-_id -userId -createdAt -updatedAt -__v')
-    .populate('partyId')
+    .populate({
+      path: 'partyId',
+      populate: [
+        {
+          path: 'userId',
+          select: 'name email image',
+        },
+        {
+          path: 'participants',
+          select: 'name email image',
+        },
+      ],
+    })
     .lean();
 
   const partiesOnly = savedParties.map(item => item.partyId);
