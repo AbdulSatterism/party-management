@@ -32,4 +32,22 @@ router.get(
   ShopController.getShopItemById,
 );
 
+router.delete(
+  '/delete-product/:id',
+  auth(USER_ROLES.ADMIN),
+  ShopController.deleteShopItem,
+);
+
+router.patch(
+  '/update-product/:id',
+  fileUploadHandler(),
+  auth(USER_ROLES.ADMIN),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = JSON.parse(req.body.data);
+    next();
+  },
+  validateRequest(shopValidations.updateShopItemSchema),
+  ShopController.updateShopItem,
+);
+
 export const ShopRoutes = router;

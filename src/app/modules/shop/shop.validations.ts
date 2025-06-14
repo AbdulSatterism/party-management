@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const createShopItemSchema = z.object({
+const createShopItemSchema = z.object({
   body: z.object({
     category: z.string(),
     title: z.string(),
@@ -10,6 +10,17 @@ export const createShopItemSchema = z.object({
   }),
 });
 
+const updateShopItemSchema = z.object({
+  body: z.object({
+    category: z.string().optional(),
+    title: z.string().optional(),
+    price: z.number().optional(),
+    link: z.string().optional(),
+    rating: z.number().optional(),
+  }),
+});
+
 export const shopValidations = {
   createShopItemSchema,
+  updateShopItemSchema,
 };

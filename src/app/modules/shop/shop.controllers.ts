@@ -51,8 +51,44 @@ const getShopItemById = catchAsync(async (req, res) => {
   });
 });
 
+const deleteShopItem = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await ShopService.deleteShopItem(id);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Shop item deleted successfully',
+    data: result,
+  });
+});
+
+const updateShopItem = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  let image;
+  if (req.files && 'image' in req.files && req.files.image[0]) {
+    image = `/images/${req.files.image[0].filename}`;
+  }
+
+  const value = {
+    image,
+    ...req.body,
+  };
+
+  const result = await ShopService.updateShopItem(id, value);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Shop item updated successfully',
+    data: result,
+  });
+});
+
 export const ShopController = {
   createShop,
   getAllShopItems,
   getShopItemById,
+  deleteShopItem,
+  updateShopItem,
 };
