@@ -79,4 +79,12 @@ route.get(
   PartyController.paidParties,
 );
 
+route.get(
+  '/save-status/:id',
+  auth(USER_ROLES.USER, USER_ROLES.HOST, USER_ROLES.ADMIN),
+  PartyController.saveStatus,
+);
+
+route.get('/all-parties', auth(USER_ROLES.ADMIN), PartyController.allParties);
+
 export const partyRoute = route;

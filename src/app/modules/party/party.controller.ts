@@ -159,6 +159,27 @@ const paidParties = catchAsync(async (req, res) => {
   });
 });
 
+const saveStatus = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const partyId = req.params.id;
+
+  const isSaved = await PartyService.saveStatus(userId, partyId);
+
+  res.status(StatusCodes.OK).send(isSaved); // 👈 just true or false
+});
+
+const allParties = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const result = await PartyService.getAllParties(userId, req.query);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'All parties retrieved successfully',
+    data: result,
+  });
+});
+
 export const PartyController = {
   createParty,
   updateParty,
@@ -170,4 +191,6 @@ export const PartyController = {
   upcommingParties,
   pastParties,
   paidParties,
+  saveStatus,
+  allParties,
 };

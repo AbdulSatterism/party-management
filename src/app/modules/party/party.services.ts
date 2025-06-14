@@ -7,6 +7,7 @@ import mongoose, { Types } from 'mongoose';
 import { Party } from './party.model';
 import unlinkFile from '../../../shared/unlinkFile';
 import { ChatGroup } from '../chatGroup/chatGroup.model';
+import { SavedParty } from '../savedParty/savedParty.model';
 
 const createParyty = async (userId: string, payload: IParty) => {
   const isUserExist = await User.isExistUserById(userId);
@@ -796,6 +797,64 @@ const paidParties = async (userId: string) => {
   return parties;
 };
 
+const saveStatus = async (
+  userId: string,
+  partyId: string,
+): Promise<boolean> => {
+  const isSaved = await SavedParty.exists({
+    userId: new mongoose.Types.ObjectId(userId),
+    partyId: new mongoose.Types.ObjectId(partyId),
+  });
+
+  return !!isSaved; // true if exists, false otherwise
+};
+
+//*  all parties by admin
+
+const getAllParties = async (
+  userId: string,
+  query: Record<string, unknown>,
+) => {
+  const { page, limit } = query;
+  const currentPage = parseInt(page as string) || 1;
+  const pageSize = parseInt(limit as string) || 10;
+  const skip = (currentPage - 1) * pageSize;
+
+  const isUserExist = await User.isExistUserById(userId);
+
+  if (!isUserExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+
+  if (isUserExist.role !== 'ADMIN') {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'You are not authorized to view all parties!',
+    );
+  }
+
+  const parties = await Party.find({})
+    .populate([
+      { path: 'participants', select: 'name email image' },
+      { path: 'userId', select: 'name email image' },
+    ])
+    .skip(skip)
+    .limit(pageSize)
+    .lean();
+  const totalPages = Math.ceil((await Party.countDocuments()) / pageSize);
+  const totalData = await Party.countDocuments();
+
+  return {
+    data: parties,
+    meta: {
+      totalData,
+      totalPages,
+      currentPage,
+      pageSize,
+    },
+  };
+};
+
 export const PartyService = {
   createParyty,
   updateParty,
@@ -807,4 +866,6 @@ export const PartyService = {
   upcomingParties,
   pastParties,
   paidParties,
+  saveStatus,
+  getAllParties,
 };
