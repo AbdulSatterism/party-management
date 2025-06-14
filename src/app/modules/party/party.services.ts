@@ -244,14 +244,6 @@ const updateParty = async (
   return updatedParty;
 };
 
-//! join party with chat group
-
-//TODO: have to implement payment system then will be model for user payment history with party
-
-//* not implemented payment system yet
-
-//* so just when a user join a party user can buy multiple tickets and when
-
 const joinParty = async (userId: string, payload: any) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -289,8 +281,8 @@ const joinParty = async (userId: string, payload: any) => {
       );
     }
 
-    // Calculate income after 10% deduction
-    const deductionRate = 0.9; // 90% after 10% deduction
+    // Calculate income after 15% deduction
+    const deductionRate = 0.85; // 85% after 15% deduction
     const finalAmount = payload.amount * deductionRate;
 
     const chatGroup = await ChatGroup.findOne({
@@ -383,8 +375,6 @@ const joinParty = async (userId: string, payload: any) => {
   }
 };
 
-//TODO: need implement payment related all routes also parties
-
 // interface JoinPartyPayload {
 //   partyId: string;
 //   ticket: number;
@@ -444,7 +434,7 @@ const joinParty = async (userId: string, payload: any) => {
 //     });
 
 //     // Update party income by 90% of amount (host's income)
-//     const hostAmount = +(payload.amount * 0.9).toFixed(2);
+//     const hostAmount = +(payload.amount * 0.85).toFixed(2);
 //     party.income += hostAmount;
 
 //     // Update party participants, seats, sold tickets
@@ -513,18 +503,18 @@ const joinParty = async (userId: string, payload: any) => {
 //     if (!isPartyExist)
 //       throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
 
-//     const currentDate = new Date();
-//     const partyDate = new Date(isPartyExist.partyDate);
-//     const daysDifference = Math.ceil(
-//       (partyDate.getTime() - currentDate.getTime()) / (1000 * 3600 * 24),
-//     );
+// const currentDate = new Date();
+// const partyDate = new Date(isPartyExist.partyDate);
+// const hoursDifference = Math.ceil(
+//   (partyDate.getTime() - currentDate.getTime()) / 36_00_000,
+// );
 
-//     if (daysDifference < 7) {
-//       throw new AppError(
-//         StatusCodes.BAD_REQUEST,
-//         'Cannot leave party within 7 days of the event!',
-//       );
-//     }
+// if (hoursDifference < 72) {
+//   throw new AppError(
+//     StatusCodes.BAD_REQUEST,
+//     'Cannot leave party within 72 hours of the event!',
+//   );
+// }
 
 //     const isParticipant = isPartyExist.participants?.some(
 //       participantId => participantId._id.toString() === userId.toString(),
@@ -548,8 +538,8 @@ const joinParty = async (userId: string, payload: any) => {
 //     const refundAmount = +(
 //       ticketsToReturn *
 //       isPartyExist.partyFee *
-//       0.9
-//     ).toFixed(2); // 90% refund amount
+//       0.95
+//     ).toFixed(2); // 95% refund amount
 
 //     // Issue payout refund from admin account to user
 
@@ -578,7 +568,7 @@ const joinParty = async (userId: string, payload: any) => {
 //       { new: true, session },
 //     );
 
-//     const incomeToDeduct = ticketsToReturn * isPartyExist.partyFee * 0.9; // Deduct host income
+//     const incomeToDeduct = ticketsToReturn * isPartyExist.partyFee * 0.95; // Deduct host income
 
 //     const updatedParty = await Party.findByIdAndUpdate(
 //       partyId,
@@ -629,16 +619,29 @@ const leaveParty = async (userId: string, partyId: string) => {
       throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
     }
 
+    // const currentDate = new Date();
+    // const partyDate = new Date(isPartyExist.partyDate);
+    // const daysDifference = Math.ceil(
+    //   (partyDate.getTime() - currentDate.getTime()) / (1000 * 3600 * 24),
+    // );
+
+    // if (daysDifference < 7) {
+    //   throw new AppError(
+    //     StatusCodes.BAD_REQUEST,
+    //     'Cannot leave party within 7 days of the event!',
+    //   );
+    // }
+
     const currentDate = new Date();
     const partyDate = new Date(isPartyExist.partyDate);
-    const daysDifference = Math.ceil(
-      (partyDate.getTime() - currentDate.getTime()) / (1000 * 3600 * 24),
+    const hoursDifference = Math.ceil(
+      (partyDate.getTime() - currentDate.getTime()) / 36_00_000,
     );
 
-    if (daysDifference < 7) {
+    if (hoursDifference < 72) {
       throw new AppError(
         StatusCodes.BAD_REQUEST,
-        'Cannot leave party within 7 days of the event!',
+        'Cannot leave party within 72 hours of the event!',
       );
     }
 
@@ -666,7 +669,7 @@ const leaveParty = async (userId: string, partyId: string) => {
     }
 
     const ticketsToReturn = userInGroup.ticket;
-    const incomeToDeduct = ticketsToReturn * isPartyExist.partyFee * 0.9; // 90% of the total amount (10% deduction)
+    const incomeToDeduct = ticketsToReturn * isPartyExist.partyFee * 0.95; // 95% of the total amount (5% deduction)
 
     await ChatGroup.findByIdAndUpdate(
       chatGroup._id,
@@ -709,28 +712,6 @@ const leaveParty = async (userId: string, partyId: string) => {
     session.endSession();
   }
 };
-
-//* find all parties which is left less then or equal 3 day
-
-// const allParties = async () => {
-//   const today = new Date();
-//   const futureDate = new Date();
-//   futureDate.setDate(today.getDate() + 3);
-
-//   // Convert to 'YYYY-MM-DD' string (date only)
-//   const startDateStr = today.toISOString().split('T')[0];
-//   const endDateStr = futureDate.toISOString().split('T')[0];
-
-//   // Query assuming partyDate stored as 'YYYY-MM-DD' string
-//   const parties = await Party.find({
-//     partyDate: {
-//       $gte: startDateStr,
-//       $lte: endDateStr,
-//     },
-//   });
-
-//   return parties;
-// };
 
 const upcomingParties = async (userId: string) => {
   const isUserExist = await User.isExistUserById(userId);
@@ -808,8 +789,6 @@ const saveStatus = async (
 
   return !!isSaved; // true if exists, false otherwise
 };
-
-//*  all parties by admin
 
 const getAllParties = async (
   userId: string,
