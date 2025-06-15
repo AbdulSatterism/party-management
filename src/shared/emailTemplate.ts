@@ -245,7 +245,7 @@ const partyJoinedConfirmation = (values: IPartyJoinConfirmation) => {
           </tr>
           <tr>
             <td style="padding: 8px 0; font-size: 16px; color: #555;">Total Price:</td>
-            <td style="padding: 8px 0; font-size: 16px; color: #E73E1E; font-weight: 700; text-align: right;">${values.totalPrice}</td>
+            <td style="padding: 8px 0; font-size: 16px; color: #E73E1E; font-weight: 700; text-align: right;">$ ${values.totalPrice}</td>
           </tr>
         </table>
       </div>
