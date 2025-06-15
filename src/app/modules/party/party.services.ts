@@ -8,6 +8,9 @@ import { Party } from './party.model';
 import unlinkFile from '../../../shared/unlinkFile';
 import { ChatGroup } from '../chatGroup/chatGroup.model';
 import { SavedParty } from '../savedParty/savedParty.model';
+import { IPartyJoinConfirmation } from '../../../types/emailTamplate';
+import { emailTemplate } from '../../../shared/emailTemplate';
+import { emailHelper } from '../../../helpers/emailHelper';
 
 const createParyty = async (userId: string, payload: IParty) => {
   const isUserExist = await User.isExistUserById(userId);
@@ -323,6 +326,23 @@ const joinParty = async (userId: string, payload: any) => {
         { new: true, session },
       );
 
+      // send the confirmation email to the user
+
+      const emailValues: IPartyJoinConfirmation = {
+        email: isUserExist.email,
+        partyName: isPartyExist.partyName,
+        partyDate: isPartyExist.partyDate
+          ? isPartyExist.partyDate.toISOString().split('T')[0]
+          : '',
+        ticketCount: payload.ticket,
+        totalPrice: finalAmount.toFixed(2),
+      };
+
+      // Send email to host
+      const hostConfermationMail =
+        emailTemplate.partyJoinedConfirmation(emailValues);
+      emailHelper.sendEmail(hostConfermationMail);
+
       await session.commitTransaction();
       return updatedParty;
     }
@@ -475,6 +495,22 @@ const joinParty = async (userId: string, payload: any) => {
 //     party.totalSits -= payload.ticket;
 //     party.soldTicket += payload.ticket;
 //     await party.save({ session });
+
+// send the confirmation email to the user
+
+// const emailValues: IPartyJoinConfirmation = {
+//   email: isUserExist.email,
+//   partyName: isPartyExist.partyName,
+//   partyDate: isPartyExist.partyDate
+//     ? isPartyExist.partyDate.toISOString().split('T')[0]
+//     : '',
+//   ticketCount: payload.ticket,
+//   totalPrice: finalAmount.toFixed(2),
+// };
+
+// // Send email to host
+// const hostConfermationMail = emailTemplate.partyJoinedConfirmation(emailValues);
+// emailHelper.sendEmail(hostConfermationMail);
 
 //     await session.commitTransaction();
 //     return party;

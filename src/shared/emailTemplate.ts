@@ -1,6 +1,7 @@
 import {
   ICreateAccount,
   IHostApproval,
+  IPartyJoinConfirmation,
   IResetPassword,
 } from '../types/emailTamplate';
 
@@ -197,9 +198,85 @@ const HostRejected = (values: IHostApproval) => {
   return data;
 };
 
+const partyJoinedConfirmation = (values: IPartyJoinConfirmation) => {
+  const data = {
+    to: values.email,
+    subject: 'Party join confirmation',
+    html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0;">
+  <div style="width: 100%; max-width: 600px; margin: 30px auto; background-color: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;">
+    <!-- Header with accent color -->
+    <div style="background-color: #E73E1E; padding: 20px; text-align: center;">
+      <h2 style="color: white; margin: 0; font-size: 24px;">Party Confirmation</h2>
+    </div>
+    
+    <!-- Main Content -->
+    <div style="padding: 40px 30px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <div style="background-color: #E73E1E; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="white"/>
+          </svg>
+        </div>
+        <h1 style="color: #333; font-size: 28px; font-weight: 600; margin-bottom: 15px;">Congratulations!</h1>
+        <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 10px;">
+          You've successfully joined the party!
+        </p>
+      </div>
+      
+      <div style="background-color: #FFF5F4; border-left: 4px solid #E73E1E; padding: 15px; margin-bottom: 30px;">
+        <p style="font-size: 16px; color: #555; line-height: 1.6; margin: 0;">
+          Here are your ticket details:
+        </p>
+      </div>
+      
+      <div style="margin-bottom: 30px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #555;">Party Name:</td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #333; font-weight: 600; text-align: right;">${values.partyName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #555;">Date:</td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #333; font-weight: 600; text-align: right;">${values.partyDate}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #555;">Tickets:</td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #333; font-weight: 600; text-align: right;">${values.ticketCount}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; font-size: 16px; color: #555;">Total Price:</td>
+            <td style="padding: 8px 0; font-size: 16px; color: #E73E1E; font-weight: 700; text-align: right;">${values.totalPrice}</td>
+          </tr>
+        </table>
+      </div>
+      
+      <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 25px;">
+        We're excited to see you at the event! Your ticket details will be sent separately.
+      </p>
+      
+      <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 10px;">
+        If you have any questions, feel free to reach out to us.
+    </div>
+    
+    <!-- Footer -->
+    <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+      <p style="font-size: 14px; color: #888; margin-bottom: 10px;">
+        Questions about your ticket? Contact us at <a href="mailto:support@example.com" style="color: #E73E1E; text-decoration: none;">support@example.com</a>
+      </p>
+      <p style="font-size: 12px; color: #aaa; margin: 0;">
+        © 2023 Party Management. All rights reserved.
+      </p>
+    </div>
+  </div>
+</body>`,
+  };
+  return data;
+};
+
 export const emailTemplate = {
   createAccount,
   resetPassword,
   hostApproval,
   HostRejected,
+  partyJoinedConfirmation,
 };

@@ -13,3 +13,11 @@ export type IHostApproval = {
   email: string;
   hostName: string;
 };
+
+export type IPartyJoinConfirmation = {
+  email: string;
+  partyName: string;
+  partyDate: string;
+  ticketCount: number;
+  totalPrice: string;
+};
