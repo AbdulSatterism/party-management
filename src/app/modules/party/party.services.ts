@@ -39,7 +39,7 @@ const getNearbyParties = async (query: {
   days?: number;
   search?: string;
   country?: string;
-  userId: string; // ✅ add this
+  userId: string;
 }) => {
   const { lat, lon, days, search, country, userId } = query;
 
@@ -62,24 +62,37 @@ const getNearbyParties = async (query: {
 
   const matchConditions: any = {};
 
+  // Always exclude expired parties (before today)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   if (days) {
-    const today = new Date();
     const futureDate = new Date();
     futureDate.setDate(today.getDate() + days);
+    futureDate.setHours(23, 59, 59, 999);
+
     matchConditions.partyDate = {
-      $gte: today.toISOString().split('T')[0],
-      $lte: futureDate.toISOString().split('T')[0],
+      $gte: today,
+      $lte: futureDate,
     };
+  } else {
+    matchConditions.partyDate = { $gte: today };
   }
 
   if (search) {
     const safeSearch = search.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-    matchConditions.partyName = { $regex: `.*${safeSearch}.*`, $options: 'i' };
+    matchConditions.partyName = {
+      $regex: `.*${safeSearch}.*`,
+      $options: 'i',
+    };
   }
 
   if (country) {
     const safeCountry = country.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-    matchConditions.country = { $regex: `.*${safeCountry}.*`, $options: 'i' };
+    matchConditions.country = {
+      $regex: `.*${safeCountry}.*`,
+      $options: 'i',
+    };
   }
 
   if (Object.keys(matchConditions).length > 0) {
@@ -135,7 +148,7 @@ const getNearbyParties = async (query: {
     },
   });
 
-  // ✅ Add this stage to check if the user has saved the party
+  // Check if the user has saved the party
   pipeline.push({
     $lookup: {
       from: 'savedparties',
@@ -156,14 +169,14 @@ const getNearbyParties = async (query: {
     },
   });
 
-  // ✅ Add a new field: isSaved = savedStatus.length > 0
+  // Add isSaved field
   pipeline.push({
     $addFields: {
       isSaved: { $gt: [{ $size: '$savedStatus' }, 0] },
     },
   });
 
-  // ✅ Optionally remove the savedStatus array from the final output
+  // Remove savedStatus from final output
   pipeline.push({
     $project: {
       savedStatus: 0,
@@ -173,8 +186,6 @@ const getNearbyParties = async (query: {
   const parties = await Party.aggregate(pipeline);
   return parties;
 };
-
-//* signle party with participants
 
 const getSingleParty = async (partyId: string) => {
   const isPartyExist = await Party.findById(partyId)
