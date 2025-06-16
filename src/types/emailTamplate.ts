@@ -21,3 +21,11 @@ export type IPartyJoinConfirmation = {
   ticketCount: number;
   totalPrice: string;
 };
+
+export type IPayoutConfirmation = {
+  email: string;
+  partyName: string;
+  amount: number;
+  status: string;
+  paypalBatchId: string;
+};

@@ -2,6 +2,7 @@ import {
   ICreateAccount,
   IHostApproval,
   IPartyJoinConfirmation,
+  IPayoutConfirmation,
   IResetPassword,
 } from '../types/emailTamplate';
 
@@ -273,10 +274,84 @@ const partyJoinedConfirmation = (values: IPartyJoinConfirmation) => {
   return data;
 };
 
+const poyoutHostConfirmation = (values: IPayoutConfirmation) => {
+  const data = {
+    to: values.email,
+    subject: 'Party join confirmation',
+    html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0;">
+  <div style="width: 100%; max-width: 600px; margin: 30px auto; background-color: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;">
+    <!-- Header with accent color -->
+    <div style="background-color: #E73E1E; padding: 20px; text-align: center;">
+      <h2 style="color: white; margin: 0; font-size: 24px;">Payment Confirmation</h2>
+    </div>
+    
+    <!-- Main Content -->
+    <div style="padding: 40px 30px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <div style="background-color: #E73E1E; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" fill="white"/>
+          </svg>
+        </div>
+        <h1 style="color: #333; font-size: 28px; font-weight: 600; margin-bottom: 15px;">Payout Successful!</h1>
+        <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 10px;">
+          Your earnings have been successfully transferred.
+        </p>
+      </div>
+      
+      <div style="background-color: #FFF5F4; border-left: 4px solid #E73E1E; padding: 15px; margin-bottom: 30px;">
+        <p style="font-size: 16px; color: #555; line-height: 1.6; margin: 0;">
+          <strong style="color: #E73E1E;">Payment processed:</strong>$ ${values.amount} for ${values.partyName}
+        </p>
+      </div>
+      
+      <div style="margin-bottom: 30px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 12px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #555;">Event:</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #333; font-weight: 600; text-align: right;">${values.partyName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #555;">Amount:</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #E73E1E; font-weight: 700; text-align: right;">${values.amount}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #555;">Status:</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #4CAF50; font-weight: 600; text-align: right;">${values.status}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0; font-size: 16px; color: #555;">Transaction ID:</td>
+            <td style="padding: 12px 0; font-size: 16px; color: #333; font-weight: 600; text-align: right;">${values.paypalBatchId}</td>
+          </tr>
+        </table>
+      </div>
+      
+      <p style="font-size: 16px; color: #555; line-height: 1.6; margin-bottom: 25px;">
+        The payment should appear in your account within 2 or 1 business days. If you don't see the payment, please check your PayPal account directly or contact with the admin.
+      </p>
+      
+    </div>
+    
+    <!-- Footer -->
+    <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+      <p style="font-size: 14px; color: #888; margin-bottom: 10px;">
+        Need help? Contact our support team at <a href="mailto:support@example.com" style="color: #E73E1E; text-decoration: none;">support@example.com</a>
+      </p>
+      <p style="font-size: 12px; color: #aaa; margin: 0;">
+        © 2023 Party Management. All rights reserved.
+      </p>
+    </div>
+  </div>
+</body>`,
+  };
+  return data;
+};
+
 export const emailTemplate = {
   createAccount,
   resetPassword,
   hostApproval,
   HostRejected,
   partyJoinedConfirmation,
+  poyoutHostConfirmation,
 };

@@ -4,6 +4,10 @@ import { Party } from '../app/modules/party/party.model';
 import { payoutToHost } from '../app/modules/payment/utils';
 import { HostPayoutService } from '../app/modules/payoutHost/payoutHost.service';
 import mongoose from 'mongoose';
+import { IPayoutConfirmation } from '../types/emailTamplate';
+import { User } from '../app/modules/user/user.model';
+import { emailTemplate } from '../shared/emailTemplate';
+import { emailHelper } from '../helpers/emailHelper';
 
 const schedulePayoutCron = () => {
   // Runs every day at 10  server time
@@ -68,6 +72,21 @@ const schedulePayoutCron = () => {
           logger.info(
             `Payout completed for party ${party._id} (${party.partyName})`,
           );
+
+          const user = await User.findById(party.userId);
+          // send confirmation email to host
+          const emailValues: IPayoutConfirmation = {
+            email: user?.email || party.paypalAccount,
+            partyName: party.partyName,
+            amount: payoutAmount,
+            status: 'COMPLETED',
+            paypalBatchId: paypalBatchId || '',
+          };
+
+          // Send email to host
+          const hostConfermationMail =
+            emailTemplate.poyoutHostConfirmation(emailValues);
+          emailHelper.sendEmail(hostConfermationMail);
         } catch (payoutError) {
           errorLogger.error(
             `Error during payout for party ${party._id}:`,
