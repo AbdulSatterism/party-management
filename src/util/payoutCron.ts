@@ -15,12 +15,9 @@ const schedulePayoutCron = () => {
       const today = new Date();
       const futureDate = new Date();
 
-      const normalizeDateToISO = (date: Date) =>
-        date.toISOString().split('T')[0];
-
-      const startDateStr = normalizeDateToISO(today);
-      futureDate.setDate(today.getDate() + 3);
-      const endDateStr = normalizeDateToISO(futureDate);
+      const startDateStr = today.toISOString();
+      futureDate.setDate(today.getDate() + 2);
+      const endDateStr = futureDate.toISOString();
 
       const partiesToPayout = await Party.find({
         partyDate: { $gte: startDateStr, $lte: endDateStr },
