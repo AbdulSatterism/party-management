@@ -9,7 +9,7 @@ const superUser = {
   role: USER_ROLES.ADMIN,
   email: config.admin.email,
   password: config.admin.password,
-  phone: '14524578',
+  phone: '',
   verified: true,
 };
 
