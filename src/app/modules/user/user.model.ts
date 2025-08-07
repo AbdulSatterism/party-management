@@ -42,11 +42,11 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     googleId: {
       type: String,
-      unique: true,
+      default: '',
     },
     facebookId: {
       type: String,
-      unique: true,
+      default: '',
     },
     residential: {
       type: String,
