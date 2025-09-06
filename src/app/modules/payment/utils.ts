@@ -14,7 +14,7 @@ const clientSecret = config.paypal.client_secret!;
 const getPayPalAccessToken = async (): Promise<string> => {
   const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
   const response = await axios.post(
-    'https://api.sandbox.paypal.com/v1/oauth2/token', // Use live endpoint for production
+    'https://api.paypal.com/v1/oauth2/token', // Use live endpoint for production
     'grant_type=client_credentials',
     {
       headers: {
@@ -31,7 +31,7 @@ const getPayPalAccessToken = async (): Promise<string> => {
 export const captureOrder = async (orderId: string) => {
   const accessToken = await getPayPalAccessToken();
   const response = await axios.post(
-    `https://api.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`, // Use live endpoint for production
+    `https://api.paypal.com/v2/checkout/orders/${orderId}/capture`, // Use live endpoint for production
     {}, // empty body required
     {
       headers: {
@@ -73,7 +73,7 @@ export const payoutToHost = async (
 
   try {
     const response = await axios.post(
-      'https://api-m.sandbox.paypal.com/v1/payments/payouts', // Use api-m for REST v2 payouts
+      'https://api-m.paypal.com/v1/payments/payouts', // Use api-m for REST v2 payouts
       payoutBody,
       {
         headers: {
@@ -173,7 +173,7 @@ export const createPaymentIntent = async (
 
   // Create PayPal Order
   const response = await axios.post(
-    'https://api.sandbox.paypal.com/v2/checkout/orders', // Use live endpoint for production
+    'https://api.paypal.com/v2/checkout/orders', // Use live endpoint for production
     {
       intent: 'CAPTURE',
       purchase_units: [
