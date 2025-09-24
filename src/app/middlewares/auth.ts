@@ -5,6 +5,7 @@ import { Secret } from 'jsonwebtoken';
 import config from '../../config';
 import { jwtHelper } from '../../helpers/jwtHelper';
 import AppError from '../errors/AppError';
+import { User } from '../modules/user/user.model';
 
 const auth = (...roles: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -34,7 +35,9 @@ const auth = (...roles: string[]) => {
 
       req.user = decodedUser;
 
-      if (roles.length && !roles.includes(decodedUser.role)) {
+      const user_role = await User.findById(decodedUser.id);
+
+      if (roles.length && !roles.includes(user_role?.role ?? '')) {
         throw new AppError(
           StatusCodes.FORBIDDEN,
           "You don't have permission to access this API",
