@@ -62,7 +62,7 @@ export const payoutToHost = async (
         recipient_type: 'EMAIL',
         amount: {
           value: amount.toFixed(2),
-          currency: 'USD',
+          currency: 'EUR',
         },
         receiver: receiverEmail,
         note: `Payout for party host: ${partyName}`,
@@ -112,7 +112,7 @@ export const payoutToUser = async (
         recipient_type: 'EMAIL',
         amount: {
           value: amount.toFixed(2),
-          currency: 'USD',
+          currency: 'EUR',
         },
         receiver: receiverEmail,
         note: `Refund for leaving party: ${partyName}`,
@@ -179,7 +179,7 @@ export const createPaymentIntent = async (
       purchase_units: [
         {
           amount: {
-            currency_code: 'USD',
+            currency_code: 'EUR',
             value: amount,
           },
         },
