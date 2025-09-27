@@ -122,7 +122,7 @@ export const payoutToUser = async (
   };
 
   const response = await axios.post(
-    'https://api.sandbox.paypal.com/v1/payments/payouts', // live endpoint for production
+    'https://api-m.paypal.com/v1/payments/payouts', // live endpoint for production
     payoutBody,
     {
       headers: {
