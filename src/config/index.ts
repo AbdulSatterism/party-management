@@ -40,4 +40,10 @@ export default {
     client_id: process.env.PAYPAL_CLIENT_ID,
     client_secret: process.env.PAYPAL_CLIENT_SECRET,
   },
+  apple: {
+    apple_key_id: process.env.APPLE_KEY_ID,
+    apple_team_id: process.env.APPLE_TEAM_ID,
+    apple_bundle_id: process.env.APPLE_BUNDLE_ID,
+    apple_private_key: process.env.APPLE_PRIVATE_KEY,
+  },
 };

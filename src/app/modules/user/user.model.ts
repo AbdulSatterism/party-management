@@ -48,6 +48,10 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       default: '',
     },
+    appleId: {
+      type: String,
+      default: '',
+    },
     residential: {
       type: String,
       default: '',

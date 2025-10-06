@@ -14,6 +14,7 @@ export type IUser = {
   isDeleted?: boolean;
   googleId?: string;
   facebookId?: string;
+  appleId?: string;
   hostRequest?: 'NONE' | 'REQUESTED' | 'APPROVED' | 'REJECTED';
   paypalAccount?: string;
   authentication?: {
