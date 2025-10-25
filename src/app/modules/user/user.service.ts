@@ -326,6 +326,19 @@ const getAllHost = async (query: Record<string, unknown>) => {
   return { result, meta };
 };
 
+// delete user
+
+const deleteUser = async (id: string) => {
+  const isExistUser = await User.isExistUserById(id);
+  if (!isExistUser) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+
+  const deleteDoc = await User.findByIdAndDelete(id);
+
+  return deleteDoc;
+};
+
 export const UserService = {
   createUserFromDb,
   getUserProfileFromDB,
@@ -339,4 +352,5 @@ export const UserService = {
   rejectedHostRequest,
   getAllRejectedHostRequest,
   getAllHost,
+  deleteUser,
 };

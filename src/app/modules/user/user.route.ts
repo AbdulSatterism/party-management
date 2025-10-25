@@ -93,4 +93,10 @@ router.patch(
   UserController.rejectHostRequest,
 );
 
+router.delete(
+  '/delete-account',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN, USER_ROLES.HOST),
+  UserController.deleteUser,
+);
+
 export const UserRoutes = router;

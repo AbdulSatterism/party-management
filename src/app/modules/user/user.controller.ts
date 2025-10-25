@@ -196,6 +196,18 @@ const getAllHost = catchAsync(async (req, res) => {
   });
 });
 
+const deleteUser = catchAsync(async (req, res) => {
+  const id = req.user.id;
+  const result = await UserService.deleteUser(id);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User deleted successfully',
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   getUserProfile,
@@ -209,4 +221,5 @@ export const UserController = {
   rejectHostRequest,
   getAllRejectedHostRequest,
   getAllHost,
+  deleteUser,
 };

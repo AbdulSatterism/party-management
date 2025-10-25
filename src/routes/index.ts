@@ -37,8 +37,6 @@ const apiRoutes = [
   { path: '/refund', route: refundUserRoutes },
 
   { path: '/payment', route: PaymentRoutes },
-  // { path: '/package', route: packageRoute },
-  // { path: '/subscription', route: SubscriptionRoutes },
 ];
 
 apiRoutes.forEach(route => router.use(route.path, route.route));
