@@ -139,7 +139,7 @@ const hostApproval = (values: IHostApproval) => {
     <!-- Footer -->
     <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #eee;">
       <p style="font-size: 14px; color: #888; margin-bottom: 10px;">
-        Need help? Contact our support team at <a href="mailto:support@example.com" style="color: #E73E1E; text-decoration: none;">support@example.com</a>
+        Need help? Contact our support team at <a href="mailto:hello@distractionhq.com" style="color: #E73E1E; text-decoration: none;">hello@distractionhq.com</a>
       </p>
       <p style="font-size: 12px; color: #aaa; margin: 0;">
         © 2023 Host Platform. All rights reserved.
@@ -262,7 +262,7 @@ const partyJoinedConfirmation = (values: IPartyJoinConfirmation) => {
     <!-- Footer -->
     <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #eee;">
       <p style="font-size: 14px; color: #888; margin-bottom: 10px;">
-        Questions about your ticket? Contact us at <a href="mailto:support@example.com" style="color: #E73E1E; text-decoration: none;">support@example.com</a>
+        Questions about your ticket? Contact us at <a href="mailto:hello@distractionhq.com" style="color: #E73E1E; text-decoration: none;">hello@distractionhq.com</a>
       </p>
       <p style="font-size: 12px; color: #aaa; margin: 0;">
         © 2023 Party Management. All rights reserved.
@@ -335,7 +335,7 @@ const poyoutHostConfirmation = (values: IPayoutConfirmation) => {
     <!-- Footer -->
     <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #eee;">
       <p style="font-size: 14px; color: #888; margin-bottom: 10px;">
-        Need help? Contact our support team at <a href="mailto:support@example.com" style="color: #E73E1E; text-decoration: none;">support@example.com</a>
+        Need help? Contact our support team at <a href="mailto:hello@distractionhq.com" style="color: #E73E1E; text-decoration: none;">hello@distractionhq.com</a>
       </p>
       <p style="font-size: 12px; color: #aaa; margin: 0;">
         © 2023 Party Management. All rights reserved.
