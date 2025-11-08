@@ -23,4 +23,10 @@ router.get(
   chatGroupController.getUserList,
 );
 
+router.post(
+  '/report',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN, USER_ROLES.HOST),
+  chatGroupController.createReport,
+);
+
 export const ChatGroupRoutes = router;

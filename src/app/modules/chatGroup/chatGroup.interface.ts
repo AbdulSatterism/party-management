@@ -10,3 +10,8 @@ export interface IChatGroup {
     guest?: Types.ObjectId[];
   }[];
 }
+
+export interface IReport {
+  title?: string;
+  reportedId?: string;
+}

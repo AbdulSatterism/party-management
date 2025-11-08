@@ -1,5 +1,5 @@
 import { model, Schema } from 'mongoose';
-import { IChatGroup } from './chatGroup.interface';
+import { IChatGroup, IReport } from './chatGroup.interface';
 
 const chatGroupSchema = new Schema<IChatGroup>(
   {
@@ -17,5 +17,16 @@ const chatGroupSchema = new Schema<IChatGroup>(
   { timestamps: true },
 );
 
+const reportSchema = new Schema<IReport>(
+  {
+    title: { type: String, required: false },
+    reportedId: { type: String, required: false },
+  },
+  { timestamps: true },
+);
+
 // Model creation for ChatGroup
 export const ChatGroup = model<IChatGroup>('ChatGroup', chatGroupSchema);
+
+// Model creation for Report
+export const Report = model<IReport>('Report', reportSchema);

@@ -49,8 +49,20 @@ const getUserList = catchAsync(async (req, res) => {
   });
 });
 
+const createReport = catchAsync(async (req, res) => {
+  const result = await chatGroupService.createReport(req.body);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.CREATED,
+    message: 'Report created successfully',
+    data: result,
+  });
+});
+
 export const chatGroupController = {
   chattingGroupbySpecificUser,
   addNewMember,
   getUserList,
+  createReport,
 };

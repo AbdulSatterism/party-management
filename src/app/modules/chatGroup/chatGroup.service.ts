@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from 'http-status-codes';
-import { ChatGroup } from './chatGroup.model';
+import { ChatGroup, Report } from './chatGroup.model';
 import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
+import { IReport } from './chatGroup.interface';
 
 const chattingGroupbySpecificUser = async (
   userId: string,
@@ -112,8 +113,16 @@ const getUserList = async (
   return users;
 };
 
+// post report
+
+const createReport = async (payload: IReport) => {
+  const report = await Report.create(payload);
+  return report;
+};
+
 export const chatGroupService = {
   chattingGroupbySpecificUser,
   addNewMember,
   getUserList,
+  createReport,
 };
