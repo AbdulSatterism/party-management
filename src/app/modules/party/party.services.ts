@@ -501,7 +501,10 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
         {
           partyId: payload.partyId,
           groupName: party.partyName,
-          members: [{ userId, ticket: payload.ticket, limit: payload.ticket }],
+          members: [
+            { userId, ticket: payload.ticket, limit: payload.ticket },
+            { userId: party.userId, ticket: 0, limit: 0 }, // Add party host as member
+          ],
         },
       ],
       { session },
