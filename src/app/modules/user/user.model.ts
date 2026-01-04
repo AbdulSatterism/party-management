@@ -91,6 +91,15 @@ const userSchema = new Schema<IUser, UserModal>(
       },
       select: 0,
     },
+    stripeAccountId: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    isStripeConnected: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true, versionKey: false },
 );

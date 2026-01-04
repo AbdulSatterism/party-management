@@ -23,6 +23,8 @@ export type IUser = {
     expireAt: Date;
   };
   verified: boolean;
+  stripeAccountId?: string;
+  isStripeConnected?: boolean;
 };
 
 export type UserModal = {
