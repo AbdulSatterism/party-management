@@ -187,8 +187,6 @@ export const createPaymentIntent = async (
       application_context: {
         return_url: 'http://localhost:5173',
         cancel_url: 'https://your-frontend-url.com/payment-cancel',
-        // return_url: 'https://your-frontend-url.com/payment-success',
-        // cancel_url: 'https://your-frontend-url.com/payment-cancel',
       },
     },
     {
