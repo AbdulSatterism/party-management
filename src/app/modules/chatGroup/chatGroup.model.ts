@@ -5,6 +5,7 @@ const chatGroupSchema = new Schema<IChatGroup>(
   {
     partyId: { type: Schema.Types.ObjectId, ref: 'Party', required: true },
     groupName: { type: String, required: false },
+    isActive: { type: Boolean, default: false },
     members: [
       {
         userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },

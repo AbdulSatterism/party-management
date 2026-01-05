@@ -10,6 +10,7 @@ import { socketHelper } from './helpers/socketHelper';
 import { errorLogger, logger } from './shared/logger';
 import seedAdmin from './DB';
 import schedulePayoutCron from './util/payoutCron';
+import { groupActivation } from './util/groupActivation';
 
 //uncaught exception
 process.on('uncaughtException', error => {
@@ -36,6 +37,7 @@ async function main() {
 
     // Schedule payout cron after DB connection & server start
     schedulePayoutCron();
+    groupActivation();
 
     //socket
     const io = new Server(server, {
