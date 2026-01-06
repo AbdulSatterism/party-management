@@ -4,6 +4,7 @@ import sendResponse from '../../../shared/sendResponse';
 import { PaymentService } from './payment.service';
 import { createPaymentIntent } from './utils';
 import AppError from '../../errors/AppError';
+import { User } from '../user/user.model';
 
 const createPayment = catchAsync(async (req, res) => {
   const userId = req?.user?.id;
@@ -55,8 +56,28 @@ const singlePayment = catchAsync(async (req, res) => {
   });
 });
 
+const stripeConnect = catchAsync(async ({ query }, res) => {
+  await User.updateOne(
+    {
+      _id: query.userId,
+    },
+    {
+      $set: {
+        isStripeConnected: true,
+      },
+    },
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Stripe account connected successfully',
+  });
+});
+
 export const PaymentController = {
   allPayment,
   singlePayment,
   createPayment,
+  stripeConnect,
 };

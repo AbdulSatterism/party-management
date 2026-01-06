@@ -225,7 +225,7 @@ const connectStripeAccount = catchAsync(async (req, res) => {
       stripeAccountId: await getStripeAccountId(user.email),
     });
 
-    await user.save();
+    await User.updateOne({ _id: user.id }, user);
   }
 
   if (user.isStripeConnected) {
