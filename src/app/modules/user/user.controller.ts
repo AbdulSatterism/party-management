@@ -7,6 +7,9 @@ import sendResponse from '../../../shared/sendResponse';
 import { UserService } from './user.service';
 import getFilePath from '../../../shared/getFilePath';
 import fs from 'fs';
+import AppError from '../../errors/AppError';
+import { User } from './user.model';
+import { getStripeAccountId, stripe } from '../payment/utils';
 
 const createUser = catchAsync(async (req, res) => {
   const value = {
@@ -208,6 +211,48 @@ const deleteUser = catchAsync(async (req, res) => {
   });
 });
 
+//connect stripe with account
+
+const connectStripeAccount = catchAsync(async (req, res) => {
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  if (!user?.stripeAccountId) {
+    Object.assign(user, {
+      stripeAccountId: await getStripeAccountId(user.email),
+    });
+
+    await user.save();
+  }
+
+  if (user.isStripeConnected) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'Stripe account already connected',
+    );
+  }
+
+  const { url } = await stripe.accountLinks.create({
+    account: user.stripeAccountId!,
+    refresh_url: `https://mtjz2v20-3011.inc1.devtunnels.ms//not-found`,
+    //TODO: change return url
+    return_url: `https://mtjz2v20-3011.inc1.devtunnels.ms/api/v1/payments/stripe/connect?userId=${user.id}`,
+    type: 'account_onboarding',
+  });
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Stripe connect link created successfully!',
+    data: {
+      url,
+    },
+  });
+});
+
 export const UserController = {
   createUser,
   getUserProfile,
@@ -222,4 +267,5 @@ export const UserController = {
   getAllRejectedHostRequest,
   getAllHost,
   deleteUser,
+  connectStripeAccount,
 };

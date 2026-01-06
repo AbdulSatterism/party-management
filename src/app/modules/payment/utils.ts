@@ -6,6 +6,11 @@ import { errorLogger } from '../../../shared/logger';
 import { PayoutUserService } from '../payoutUser/payoutUser.service';
 import mongoose from 'mongoose';
 import { Party } from '../party/party.model';
+import Stripe from 'stripe';
+
+export const stripe = new Stripe(config.payment.stripe_secret_key!, {
+  apiVersion: '2025-01-27.acacia',
+});
 
 const clientId = config.paypal.client_id!;
 const clientSecret = config.paypal.client_secret!;
@@ -205,4 +210,48 @@ export const createPaymentIntent = async (
   }
 
   return approvalLink.href;
+};
+
+// for stripe =>
+
+export const getStripeAccountId = async (
+  email: string | undefined = undefined,
+): Promise<string> => {
+  const stripeAccount = await stripe.accounts.create({
+    type: 'express',
+    email,
+    capabilities: {
+      transfers: { requested: true },
+    },
+  });
+
+  return stripeAccount.id;
+};
+
+//  receiverEmail: string,
+//   amount: number,
+//   partyName: string,
+//   partyId: string,
+export const transferMoney = async ({
+  amount,
+  stripeAccountId,
+  description,
+}: {
+  amount: number;
+  stripeAccountId: string;
+  description: string | undefined;
+}) => {
+  // create a transfer to the connected account
+  await stripe.transfers.create({
+    amount: amount * 100, // convert to cents
+    currency: 'usd',
+    destination: stripeAccountId,
+    description,
+  });
+
+  // create a payout to the connected account
+  await stripe.payouts.create(
+    { amount: amount * 100, currency: 'usd' },
+    { stripeAccount: stripeAccountId },
+  );
 };

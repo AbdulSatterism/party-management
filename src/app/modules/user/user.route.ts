@@ -99,4 +99,10 @@ router.delete(
   UserController.deleteUser,
 );
 
+router.get(
+  '/connect-stripe',
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN, USER_ROLES.HOST),
+  UserController.connectStripeAccount,
+);
+
 export const UserRoutes = router;

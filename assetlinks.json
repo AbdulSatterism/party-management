@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.toyosi_obayemi_distraction",
+      "sha256_cert_fingerprints": [
+        "42:2A:68:04:CC:61:10:98:2F:BF:CF:F4:82:76:1B:B5:FB:D8:2D:42:7D:B5:B0:2C:89:6B:D8:DE:3F:0D:57:8C"
+      ]
+    }
+  }
+]
