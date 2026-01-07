@@ -1,9 +1,11 @@
+/* eslint-disable no-undef */
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import router from './routes';
 import { Morgan } from './shared/morgen';
 import notFoundRoute from './app/middlewares/notFoundRoute';
+import path from 'path';
 
 const app = express();
 
@@ -24,6 +26,11 @@ app.use(express.urlencoded({ extended: true }));
 
 //file retrieve
 app.use(express.static('uploads'));
+
+app.use(
+  '/.well-known',
+  express.static(path.join(__dirname, 'public/.well-known')),
+);
 
 //router
 app.use('/api/v1', router);

@@ -11,9 +11,10 @@ const UserPayoutSchema: Schema = new Schema(
     email: { type: String, required: true },
     amount: { type: Number, required: true },
     paypalBatchId: { type: String },
+    stripePayoutId: { type: String, default: '' },
     status: {
       type: String,
-      reequired: true,
+      required: true,
     },
     note: { type: String },
   },

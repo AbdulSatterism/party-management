@@ -9,4 +9,5 @@ export interface IUserPayout {
   status: 'COMPLETED';
   note?: string;
   paypalBatchId?: string;
+  stripePayoutId?: string;
 }

@@ -8,5 +8,6 @@ export interface IHostPayout {
   amount: number;
   status: 'COMPLETED';
   paypalBatchId?: string;
+  stripePayoutId?: string;
   note?: string;
 }
