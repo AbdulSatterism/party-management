@@ -44,6 +44,7 @@ const schedulePayoutCron = () => {
             `Payout started for party ${party._id} (${party.partyName}) amount: $${payoutAmount}`,
           );
 
+          //TODO: NEED AUTOPAYOUT IMPLEMENTATION
           // Perform payout to host PayPal account
           const payoutResponse = await payoutToHost(
             party.paypalAccount,

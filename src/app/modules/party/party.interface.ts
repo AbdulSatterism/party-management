@@ -15,6 +15,7 @@ export interface IParty {
   country?: string;
   address: string;
   soldTicket: number;
+  payoutOption: 'PAYPAL' | 'STRIPE';
   location: {
     type: string;
     coordinates: [longtitude: number, latitude: number]; //[example:longtitude->90.413, latitude->23.456]
