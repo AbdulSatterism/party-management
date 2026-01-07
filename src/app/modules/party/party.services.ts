@@ -12,7 +12,12 @@ import { IPartyJoinConfirmation } from '../../../types/emailTamplate';
 import { emailTemplate } from '../../../shared/emailTemplate';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { Payment } from '../payment/payment.model';
-import { captureOrder, payoutToUser } from '../payment/utils';
+import {
+  captureOrder,
+  payoutToUser,
+  stripe,
+  stripePayout,
+} from '../payment/utils';
 
 const createParyty = async (userId: string, payload: IParty) => {
   const isUserExist = await User.isExistUserById(userId);
@@ -416,6 +421,7 @@ interface JoinPartyPayload {
   ticket: number;
   amount: number;
   orderId: string;
+  paymentMethod?: 'PAYPAL' | 'STRIPE';
 }
 
 const joinParty = async (userId: string, payload: JoinPartyPayload) => {
@@ -443,22 +449,52 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
     }
 
     // Capture payment from PayPal (full amount goes to admin)
-    const captureResponse = await captureOrder(payload.orderId);
-    if (!captureResponse || captureResponse.status !== 'COMPLETED') {
-      throw new AppError(StatusCodes.PAYMENT_REQUIRED, 'Payment not completed');
+
+    let captureId: string;
+    let captureStatus: string;
+    let paypalEmail: string | undefined;
+
+    // if payment method is PayPal
+    if (payload.paymentMethod === 'PAYPAL') {
+      const captureResponse = await captureOrder(payload.orderId);
+      if (!captureResponse || captureResponse.status !== 'COMPLETED') {
+        throw new AppError(
+          StatusCodes.PAYMENT_REQUIRED,
+          'Payment not completed',
+        );
+      }
+
+      // Extract capture details
+      captureId = captureResponse.purchase_units[0].payments.captures[0].id;
+      paypalEmail = captureResponse.payer?.email_address;
+      captureStatus = captureResponse.status;
+
+      // Save user paypal email (optional)
+      await User.findByIdAndUpdate(
+        userId,
+        { paypalAccount: paypalEmail },
+        { session },
+      );
+    } else if (payload.paymentMethod === 'STRIPE') {
+      // Handle Stripe payment
+
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        payload.orderId,
+      );
+
+      if (!paymentIntent || paymentIntent.status !== 'succeeded') {
+        throw new AppError(
+          StatusCodes.PAYMENT_REQUIRED,
+          'Payment not completed',
+        );
+      }
+
+      captureId = payload.orderId;
+      captureStatus = 'COMPLETED';
+      paypalEmail = undefined;
+    } else {
+      throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid payment method');
     }
-
-    // Extract capture details
-    const captureId = captureResponse.purchase_units[0].payments.captures[0].id;
-    const paypalEmail = captureResponse.payer?.email_address;
-    const captureStatus = captureResponse.status;
-
-    // Save user paypal email (optional)
-    await User.findByIdAndUpdate(
-      userId,
-      { paypalAccount: paypalEmail },
-      { session },
-    );
 
     // Save payment record
     await Payment.create({
@@ -467,6 +503,7 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
       status: captureStatus,
       transactionId: captureId,
       amount: payload.amount,
+      paymentMethod: payload.paymentMethod,
     });
 
     // Update party income by 90% of amount (host's income)
@@ -611,13 +648,44 @@ const leaveParty = async (userId: string, partyId: string) => {
       );
     }
 
-    await payoutToUser(
-      userPaypalEmail.paypalAccount,
-      refundAmount,
-      isPartyExist.partyName,
-      partyId,
-      userId,
-    );
+    const paymentInfo = await Payment.findOne({ userId, partyId }).lean();
+
+    if (!paymentInfo) {
+      throw new AppError(
+        StatusCodes.NOT_FOUND,
+        'Payment information not found for the user!',
+      );
+    }
+
+    // if payment method is PayPal
+
+    if (paymentInfo.paymentMethod === 'PAYPAL') {
+      await payoutToUser(
+        userPaypalEmail.paypalAccount,
+        refundAmount,
+        isPartyExist.partyName,
+        partyId,
+        userId,
+      );
+    } else if (paymentInfo.paymentMethod === 'STRIPE') {
+      // amount, stripeAccountId, description
+      // stripeAccountId,
+      //   description,
+      //   userId,
+      //   partyId,
+      //   receiverEmail,
+      //   stripePayoutId;
+      const info = {
+        amount: refundAmount,
+        stripeAccountId: isUserExist.stripeAccountId!,
+        description: `Refund for leaving party: ${isPartyExist.partyName}`,
+        userId,
+        partyId,
+        receiverEmail: userPaypalEmail.paypalAccount,
+        stripePayoutId: paymentInfo.transactionId,
+      };
+      await stripePayout(info);
+    }
 
     // Update chat group and party accordingly
     await ChatGroup.findByIdAndUpdate(

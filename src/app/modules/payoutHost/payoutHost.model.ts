@@ -11,7 +11,7 @@ const hostPayoutSchema: Schema = new Schema(
     email: { type: String, required: true },
     amount: { type: Number, required: true },
     paypalBatchId: { type: String },
-    stripePayoutId: { type: String, default: '' },
+    stripePayoutId: { type: String },
 
     status: {
       type: String,

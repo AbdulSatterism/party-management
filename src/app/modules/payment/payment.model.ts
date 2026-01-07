@@ -8,9 +8,14 @@ const paymentSchema = new Schema<IPayment>(
     transactionId: { type: String, required: true },
     partyId: { type: Schema.Types.ObjectId, ref: 'Party', required: true },
     amount: { type: Number, required: true },
+    paymentMethod: {
+      type: String,
+      enum: ['PAYPAL', 'STRIPE'],
+      required: false,
+    },
     status: {
       type: String,
-      enum: ['PENDING', 'COMPLETED'],
+      enum: ['PENDING', 'COMPLETED', 'FAILED'],
       default: 'PENDING',
     },
   },

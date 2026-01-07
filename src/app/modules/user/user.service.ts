@@ -15,6 +15,7 @@ import AppError from '../../errors/AppError';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { IHostApproval } from '../../../types/emailTamplate';
 
+
 const createUserFromDb = async (payload: IUser) => {
   payload.role = USER_ROLES.USER;
   const result = await User.create(payload);
@@ -79,6 +80,8 @@ const getUserProfileFromDB = async (
   if (!isExistUser) {
     throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
+
+
 
   return isExistUser;
 };

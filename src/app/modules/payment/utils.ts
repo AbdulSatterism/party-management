@@ -232,14 +232,22 @@ export const getStripeAccountId = async (
 //   amount: number,
 //   partyName: string,
 //   partyId: string,
-export const transferMoney = async ({
+export const stripePayout = async ({
   amount,
   stripeAccountId,
   description,
+  userId,
+  partyId,
+  receiverEmail,
+  stripePayoutId,
 }: {
   amount: number;
   stripeAccountId: string;
   description: string | undefined;
+  userId: string;
+  partyId: string;
+  receiverEmail: string;
+  stripePayoutId: string;
 }) => {
   // create a transfer to the connected account
   await stripe.transfers.create({
@@ -254,4 +262,15 @@ export const transferMoney = async ({
     { amount: amount * 100, currency: 'usd' },
     { stripeAccount: stripeAccountId },
   );
+
+  // Save payout info after successful payout
+  await PayoutUserService.createUserPayout({
+    userId: new mongoose.Types.ObjectId(userId),
+    partyId: new mongoose.Types.ObjectId(partyId),
+    email: receiverEmail,
+    amount,
+    status: 'COMPLETED',
+    stripePayoutId: stripePayoutId,
+    note: 'Refund for leaving party',
+  });
 };
