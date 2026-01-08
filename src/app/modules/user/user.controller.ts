@@ -237,9 +237,9 @@ const connectStripeAccount = catchAsync(async (req, res) => {
 
   const { url } = await stripe.accountLinks.create({
     account: user.stripeAccountId!,
-    refresh_url: `https://mtjz2v20-3011.inc1.devtunnels.ms//not-found`,
-    //TODO: change return url
-    return_url: `https://mtjz2v20-3011.inc1.devtunnels.ms/api/v1/payments/stripe/connect?userId=${user.id}`,
+    refresh_url: `https://api.usedistraction.com/not-found`,
+
+    return_url: `https://api.usedistraction.com/api/v1/payments/stripe/connect?userId=${user.id}`,
     type: 'account_onboarding',
   });
 
