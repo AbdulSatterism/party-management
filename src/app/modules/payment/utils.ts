@@ -7,6 +7,7 @@ import { PayoutUserService } from '../payoutUser/payoutUser.service';
 import mongoose from 'mongoose';
 import { Party } from '../party/party.model';
 import Stripe from 'stripe';
+import { HostPayoutService } from '../payoutHost/payoutHost.service';
 
 export const stripe = new Stripe(config.payment.stripe_secret_key!, {
   apiVersion: '2025-01-27.acacia',
@@ -232,7 +233,7 @@ export const getStripeAccountId = async (
 //   amount: number,
 //   partyName: string,
 //   partyId: string,
-export const stripePayout = async ({
+export const stripeUserPayout = async ({
   amount,
   stripeAccountId,
   description,
@@ -271,6 +272,47 @@ export const stripePayout = async ({
     amount,
     status: 'COMPLETED',
     stripePayoutId: stripePayoutId,
+    note: 'Refund for leaving party',
+  });
+};
+
+export const stripeHostPayout = async ({
+  amount,
+  stripeAccountId,
+  description,
+  userId,
+  partyId,
+  receiverEmail,
+}: {
+  amount: number;
+  stripeAccountId: string;
+  description: string | undefined;
+  userId: string;
+  partyId: string;
+  receiverEmail: string;
+}) => {
+  // create a transfer to the connected account
+  await stripe.transfers.create({
+    amount: amount * 100, // convert to cents
+    currency: 'usd',
+    destination: stripeAccountId,
+    description,
+  });
+
+  // create a payout to the connected account
+  const payout = await stripe.payouts.create(
+    { amount: amount * 100, currency: 'usd' },
+    { stripeAccount: stripeAccountId },
+  );
+
+  // Save payout info after successful payout
+  await HostPayoutService.createHostPayout({
+    userId: new mongoose.Types.ObjectId(userId),
+    partyId: new mongoose.Types.ObjectId(partyId),
+    email: receiverEmail,
+    amount,
+    status: 'COMPLETED',
+    stripePayoutId: payout.id,
     note: 'Refund for leaving party',
   });
 };

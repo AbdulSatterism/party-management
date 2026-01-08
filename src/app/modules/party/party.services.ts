@@ -16,7 +16,7 @@ import {
   captureOrder,
   payoutToUser,
   stripe,
-  stripePayout,
+  stripeUserPayout,
 } from '../payment/utils';
 
 const createParyty = async (userId: string, payload: IParty) => {
@@ -684,7 +684,7 @@ const leaveParty = async (userId: string, partyId: string) => {
         receiverEmail: userPaypalEmail.paypalAccount,
         stripePayoutId: paymentInfo.transactionId,
       };
-      await stripePayout(info);
+      await stripeUserPayout(info);
     }
 
     // Update chat group and party accordingly

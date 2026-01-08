@@ -25,6 +25,7 @@ const createPartyValidationSchema = z.object({
         totalSits: z.coerce.number().min(1, 'Total sits must be at least 1'),
         partyFee: z.coerce.number(),
         paypalAccount: z.string(),
+        payoutOption: z.enum(['PAYPAL', 'STRIPE']),
       }),
     ),
 });

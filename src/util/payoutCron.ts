@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { errorLogger, logger } from '../shared/logger';
 import { Party } from '../app/modules/party/party.model';
-import { payoutToHost } from '../app/modules/payment/utils';
+import { payoutToHost, stripeHostPayout } from '../app/modules/payment/utils';
 import { HostPayoutService } from '../app/modules/payoutHost/payoutHost.service';
 import mongoose from 'mongoose';
 import { IPayoutConfirmation } from '../types/emailTamplate';
@@ -44,29 +44,47 @@ const schedulePayoutCron = () => {
             `Payout started for party ${party._id} (${party.partyName}) amount: $${payoutAmount}`,
           );
 
-          //TODO: NEED AUTOPAYOUT IMPLEMENTATION
-          // Perform payout to host PayPal account
-          const payoutResponse = await payoutToHost(
-            party.paypalAccount,
-            payoutAmount,
-            party.partyName,
-            party._id?.toString() || '',
-          );
+          // Fetch party host
+          const partyHost = await User.findById(party.userId);
+          if (!partyHost) {
+            throw new Error(`Party host not found for party ${party._id}`);
+          }
 
-          const paypalBatchId = payoutResponse.batch_header?.payout_batch_id;
+          const partyIdStr = party._id?.toString() || '';
+          let paypalBatchId = '';
 
-          // Save payout record for this host payout
-          await HostPayoutService.createHostPayout({
-            userId: party.userId,
-            partyId: new mongoose.Types.ObjectId(party._id?.toString()) || '',
-            email: party.paypalAccount,
-            amount: payoutAmount,
-            status: 'COMPLETED',
-            paypalBatchId,
-            note: `Payout for party host: ${party.partyName}`,
-          });
+          // Process payout based on selected payment method
+          if (party.payoutOption === 'PAYPAL') {
+            const payoutResponse = await payoutToHost(
+              party.paypalAccount,
+              payoutAmount,
+              party.partyName,
+              partyIdStr,
+            );
 
-          // Reset income after successful payout
+            paypalBatchId = payoutResponse.batch_header?.payout_batch_id;
+
+            await HostPayoutService.createHostPayout({
+              userId: party.userId,
+              partyId: new mongoose.Types.ObjectId(partyIdStr),
+              email: party.paypalAccount,
+              amount: payoutAmount,
+              status: 'COMPLETED',
+              paypalBatchId,
+              note: `Payout for party host: ${party.partyName}`,
+            });
+          } else if (party.payoutOption === 'STRIPE') {
+            await stripeHostPayout({
+              amount: payoutAmount,
+              stripeAccountId: partyHost.stripeAccountId!,
+              description: `Refund for leaving party: ${party.partyName}`,
+              userId: party.userId?.toString() || '',
+              partyId: partyIdStr,
+              receiverEmail: party.paypalAccount,
+            });
+          }
+
+          // Reset income and save party
           party.income = 0;
           await party.save();
 
@@ -74,20 +92,18 @@ const schedulePayoutCron = () => {
             `Payout completed for party ${party._id} (${party.partyName})`,
           );
 
-          const user = await User.findById(party.userId);
-          // send confirmation email to host
+          // Send confirmation email to host
           const emailValues: IPayoutConfirmation = {
-            email: user?.email || party.paypalAccount,
+            email: partyHost.email || party.paypalAccount,
             partyName: party.partyName,
             amount: payoutAmount,
             status: 'COMPLETED',
             paypalBatchId: paypalBatchId || '',
           };
 
-          // Send email to host
-          const hostConfermationMail =
+          const hostConfirmationMail =
             emailTemplate.poyoutHostConfirmation(emailValues);
-          emailHelper.sendEmail(hostConfermationMail);
+          emailHelper.sendEmail(hostConfirmationMail);
         } catch (payoutError) {
           errorLogger.error(
             `Error during payout for party ${party._id}:`,
