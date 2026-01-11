@@ -21,17 +21,20 @@ app.use(
   }),
 );
 
+app.use((req, res, next) => {
+  if (req.path.endsWith('apple-app-site-association')) {
+    res.type('application/json');
+  }
+  next();
+});
+
+// body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-//file retrieve
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static('uploads'));
+app.use(express.static(path.join(process.cwd(), 'public')));
 
-app.use(
-  '/.well-known',
-  express.static(path.join(__dirname, 'public/.well-known')),
-);
+app.use(express.static('uploads'));
 
 //router
 app.use('/api/v1', router);
