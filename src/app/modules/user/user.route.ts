@@ -105,4 +105,10 @@ router.get(
   UserController.connectStripeAccount,
 );
 
+router.post(
+  '/player-id/:id',
+  auth(USER_ROLES.USER, USER_ROLES.HOST, USER_ROLES.ADMIN),
+  UserController.playerId,
+);
+
 export const UserRoutes = router;

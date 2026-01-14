@@ -18,6 +18,7 @@ import {
   stripe,
   stripeUserPayout,
 } from '../payment/utils';
+import { sendPushNotification } from '../../../util/onesignal';
 
 const createParyty = async (userId: string, payload: IParty) => {
   const isUserExist = await User.isExistUserById(userId);
@@ -438,6 +439,9 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
     if (!party) throw new AppError(StatusCodes.NOT_FOUND, 'Party not found');
     if (!party.participants) party.participants = [];
 
+    // get host info
+    const partyHost = await User.findById(party.userId).lean();
+
     // Seat availability
     if (party.totalSits < payload.ticket) {
       throw new AppError(StatusCodes.BAD_REQUEST, 'Not enough seats');
@@ -523,10 +527,26 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
           limit: payload.ticket,
         });
         await chatGroup.save({ session });
+
+        // send push notification to all participants about new member
+        const message = `${userExists?.name || 'new member'} joined the party: ${party.partyName}`;
+        const memberUserIds = chatGroup.members?.map(m =>
+          m.userId.toString(),
+        ) as string[];
+        const memberUsers = await User.find({ _id: { $in: memberUserIds } })
+          .select('playerId')
+          .lean();
+        const playerIds = memberUsers.map(u => u.playerId).flat() as string[];
+        await sendPushNotification(
+          playerIds,
+          partyHost?.name || 'Host',
+          message,
+        );
       }
       party.participants.push(new mongoose.Types.ObjectId(userId));
       party.totalSits -= payload.ticket;
       party.soldTicket += payload.ticket;
+
       await party.save({ session });
       await session.commitTransaction();
       return party;
@@ -571,6 +591,14 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
       emailTemplate.partyJoinedConfirmation(emailValues);
     emailHelper.sendEmail(hostConfermationMail);
 
+    // send push notification to party host about new participant
+    const message = `${userExists?.name || 'new participant'} joined your party: ${party.partyName}`;
+    await sendPushNotification(
+      partyHost?.playerId as string[],
+      partyHost?.name || 'Host',
+      message,
+    );
+
     await session.commitTransaction();
     return party;
   } catch (error) {
@@ -597,6 +625,8 @@ const leaveParty = async (userId: string, partyId: string) => {
       throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
     if (!isPartyExist)
       throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
+
+    const partyHost = await User.findById(isPartyExist.userId).lean();
 
     const currentDate = new Date();
     const partyDate = new Date(isPartyExist.partyDate);
@@ -714,6 +744,14 @@ const leaveParty = async (userId: string, partyId: string) => {
         StatusCodes.INTERNAL_SERVER_ERROR,
         'Error updating party!',
       );
+
+    // send push notification to host about participant leaving
+    const message = `${isUserExist?.name || 'user'} leave from the party: ${isPartyExist.partyName}`;
+    await sendPushNotification(
+      partyHost?.playerId as string[],
+      partyHost?.name || 'Host',
+      message,
+    );
 
     await session.commitTransaction();
     return updatedParty;

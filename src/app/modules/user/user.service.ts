@@ -15,7 +15,6 @@ import AppError from '../../errors/AppError';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { IHostApproval } from '../../../types/emailTamplate';
 
-
 const createUserFromDb = async (payload: IUser) => {
   payload.role = USER_ROLES.USER;
   const result = await User.create(payload);
@@ -80,8 +79,6 @@ const getUserProfileFromDB = async (
   if (!isExistUser) {
     throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
-
-
 
   return isExistUser;
 };
@@ -342,6 +339,23 @@ const deleteUser = async (id: string) => {
   return deleteDoc;
 };
 
+const getPlayerId = async (playerId: string, userId: string) => {
+  const isExistUser = await User.findById(userId);
+  if (!isExistUser) {
+    throw new AppError(StatusCodes.NOT_FOUND, "User doesn't exist!");
+  }
+
+  // player id is
+
+  const updateUser = await User.findByIdAndUpdate(
+    { _id: userId },
+    { $addToSet: { playerId: playerId } },
+    { new: true },
+  );
+
+  return updateUser;
+};
+
 export const UserService = {
   createUserFromDb,
   getUserProfileFromDB,
@@ -356,4 +370,5 @@ export const UserService = {
   getAllRejectedHostRequest,
   getAllHost,
   deleteUser,
+  getPlayerId,
 };

@@ -211,6 +211,18 @@ const deleteUser = catchAsync(async (req, res) => {
   });
 });
 
+const playerId = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const playerId = req.params.id;
+  await UserService.getPlayerId(playerId, userId);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'player id added',
+    data: null,
+  });
+});
+
 //connect stripe with account
 
 const connectStripeAccount = catchAsync(async (req, res) => {
@@ -270,4 +282,5 @@ export const UserController = {
   getAllHost,
   deleteUser,
   connectStripeAccount,
+  playerId,
 };

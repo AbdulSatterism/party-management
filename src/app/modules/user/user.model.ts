@@ -73,6 +73,10 @@ const userSchema = new Schema<IUser, UserModal>(
       type: Boolean,
       default: false,
     },
+    playerId: {
+      type: [String],
+      default: [],
+    },
 
     authentication: {
       type: {
