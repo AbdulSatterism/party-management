@@ -8,6 +8,7 @@ import { IPayoutConfirmation } from '../types/emailTamplate';
 import { User } from '../app/modules/user/user.model';
 import { emailTemplate } from '../shared/emailTemplate';
 import { emailHelper } from '../helpers/emailHelper';
+import { sendPushNotification } from './onesignal';
 
 const schedulePayoutCron = () => {
   // Runs every day at 10  server time
@@ -73,6 +74,14 @@ const schedulePayoutCron = () => {
               paypalBatchId,
               note: `Payout for party host: ${party.partyName}`,
             });
+
+            // push notification to host about payout
+            const message = `${partyHost?.name} you received payment from: ${party.partyName} by PayPal`;
+            await sendPushNotification(
+              partyHost?.playerId as string[],
+              partyHost?.name || 'Host',
+              message,
+            );
           } else if (party.payoutOption === 'STRIPE') {
             await stripeHostPayout({
               amount: payoutAmount,
@@ -82,6 +91,14 @@ const schedulePayoutCron = () => {
               partyId: partyIdStr,
               receiverEmail: party.paypalAccount,
             });
+
+            // push notification to host about payout
+            const message = `${partyHost?.name} you received payment from: ${party.partyName} by Stripe`;
+            await sendPushNotification(
+              partyHost?.playerId as string[],
+              partyHost?.name || 'Host',
+              message,
+            );
           }
 
           // Reset income and save party

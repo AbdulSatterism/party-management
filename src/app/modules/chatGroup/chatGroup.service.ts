@@ -4,6 +4,7 @@ import { ChatGroup, Report } from './chatGroup.model';
 import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
 import { IReport } from './chatGroup.interface';
+import { sendPushNotification } from '../../../util/onesignal';
 
 const chattingGroupbySpecificUser = async (
   userId: string,
@@ -43,6 +44,7 @@ const addNewMember = async (
   );
 
   const isUserExist = await User.findById(guestId);
+  const host = await User.findById(userId);
 
   if (!isUserExist) {
     throw new AppError(StatusCodes.BAD_REQUEST, 'Guest not found');
@@ -70,6 +72,15 @@ const addNewMember = async (
       $inc: { 'members.$.limit': -1 },
     },
     { new: true },
+  );
+
+  // send push notification to the new guest
+  const message = `${host?.name || 'someone'} added you to the ${updatedGroup?.groupName || 'group'} chat group.`;
+
+  await sendPushNotification(
+    isUserExist?.playerId as string[],
+    isUserExist?.name || 'Host',
+    message,
   );
 
   return updatedGroup;
