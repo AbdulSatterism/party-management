@@ -44,7 +44,7 @@ const socket = (io: Server) => {
           const memberUserIds = chatGroup.members?.map(m =>
             m.userId.toString(),
           ) as string[];
-          const memberUsers = await User.find({ _id: { $in: memberUserIds } })
+          const memberUsers = await User.find({ _id: { $in: memberUserIds, $ne: senderId } })
             .select('playerId')
             .lean();
           const playerIds = memberUsers.map(u => u.playerId).flat() as string[];
