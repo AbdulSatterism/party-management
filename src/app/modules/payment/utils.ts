@@ -177,6 +177,7 @@ export const createPaymentIntent = async (
     throw new Error('User has already joined this party');
   }
 
+  //TODO: replace success and cancel url with frontend url
   // Create PayPal Order
   const response = await axios.post(
     'https://api-m.paypal.com/v2/checkout/orders', // Use live endpoint for production
@@ -253,14 +254,14 @@ export const stripeUserPayout = async ({
   // create a transfer to the connected account
   await stripe.transfers.create({
     amount: amount * 100, // convert to cents
-    currency: 'usd',
+    currency: 'GBP',
     destination: stripeAccountId,
     description,
   });
 
   // create a payout to the connected account
   await stripe.payouts.create(
-    { amount: amount * 100, currency: 'usd' },
+    { amount: amount * 100, currency: 'GBP' },
     { stripeAccount: stripeAccountId },
   );
 
@@ -294,14 +295,14 @@ export const stripeHostPayout = async ({
   // create a transfer to the connected account
   await stripe.transfers.create({
     amount: amount * 100, // convert to cents
-    currency: 'usd',
+    currency: 'GBP',
     destination: stripeAccountId,
     description,
   });
 
   // create a payout to the connected account
   const payout = await stripe.payouts.create(
-    { amount: amount * 100, currency: 'usd' },
+    { amount: amount * 100, currency: 'GBP' },
     { stripeAccount: stripeAccountId },
   );
 

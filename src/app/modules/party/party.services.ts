@@ -12,12 +12,7 @@ import { IPartyJoinConfirmation } from '../../../types/emailTamplate';
 import { emailTemplate } from '../../../shared/emailTemplate';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { Payment } from '../payment/payment.model';
-import {
-  captureOrder,
-  payoutToUser,
-  stripe,
-  stripeUserPayout,
-} from '../payment/utils';
+import { captureOrder, payoutToUser, stripeUserPayout } from '../payment/utils';
 import { sendPushNotification } from '../../../util/onesignal';
 
 const createParyty = async (userId: string, payload: IParty) => {
@@ -482,16 +477,16 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
     } else if (payload.paymentMethod === 'STRIPE') {
       // Handle Stripe payment
 
-      const paymentIntent = await stripe.paymentIntents.retrieve(
-        payload.orderId,
-      );
+      // const paymentIntent = await stripe.paymentIntents.retrieve(
+      //   payload.orderId,
+      // );
 
-      if (!paymentIntent || paymentIntent.status !== 'succeeded') {
-        throw new AppError(
-          StatusCodes.PAYMENT_REQUIRED,
-          'Payment not completed',
-        );
-      }
+      // if (!paymentIntent || paymentIntent.status !== 'succeeded') {
+      //   throw new AppError(
+      //     StatusCodes.PAYMENT_REQUIRED,
+      //     'Payment not completed',
+      //   );
+      // }
 
       captureId = payload.orderId;
       captureStatus = 'COMPLETED';

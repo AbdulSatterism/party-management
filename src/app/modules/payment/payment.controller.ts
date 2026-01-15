@@ -6,6 +6,27 @@ import { createPaymentIntent } from './utils';
 import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
 
+const createStripePaymentIntent = catchAsync(async (req, res) => {
+  const userId: string = req.user.id;
+  const email: string = req.user.email;
+
+  const { partyId, amount } = req.body;
+
+  const sessionUrl = await PaymentService.createStripePaymentIntent(
+    userId,
+    partyId,
+    amount,
+    email,
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Stripe payment intent created successfully',
+    data: sessionUrl,
+  });
+});
+
 const createPayment = catchAsync(async (req, res) => {
   const userId = req?.user?.id;
 
@@ -76,6 +97,7 @@ const stripeConnect = catchAsync(async ({ query }, res) => {
 });
 
 export const PaymentController = {
+  createStripePaymentIntent,
   allPayment,
   singlePayment,
   createPayment,
