@@ -6,6 +6,7 @@ import router from './routes';
 import { Morgan } from './shared/morgen';
 import notFoundRoute from './app/middlewares/notFoundRoute';
 import path from 'path';
+import { PaymentController } from './app/modules/payment/payment.controller';
 
 const app = express();
 
@@ -19,6 +20,13 @@ app.use(
     origin: '*',
     credentials: true,
   }),
+);
+
+//webhook
+app.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  PaymentController.paymentStripeWebhookController,
 );
 
 app.use((req, res, next) => {

@@ -1,21 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { PaymentService } from './payment.service';
-import { createPaymentIntent } from './utils';
+import { createPaymentIntent, stripe } from './utils';
 import AppError from '../../errors/AppError';
 import { User } from '../user/user.model';
+import config from '../../../config';
 
 const createStripePaymentIntent = catchAsync(async (req, res) => {
   const userId: string = req.user.id;
   const email: string = req.user.email;
 
-  const { partyId, amount } = req.body;
+  const { partyId, ticket, amount } = req.body;
 
   const sessionUrl = await PaymentService.createStripePaymentIntent(
     userId,
     partyId,
     amount,
+    ticket,
     email,
   );
 
@@ -96,10 +99,31 @@ const stripeConnect = catchAsync(async ({ query }, res) => {
   });
 });
 
+const paymentStripeWebhookController = catchAsync(async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+
+  try {
+    const event = stripe.webhooks.constructEvent(
+      req.body,
+      sig as string,
+      config.payment.stripe_webhook_secret as string,
+    );
+
+    await PaymentService.handleStripeWebhookService(event);
+
+    res.status(200).send({ received: true });
+  } catch (err: any) {
+    {
+      res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+  }
+});
+
 export const PaymentController = {
   createStripePaymentIntent,
   allPayment,
   singlePayment,
   createPayment,
   stripeConnect,
+  paymentStripeWebhookController,
 };
