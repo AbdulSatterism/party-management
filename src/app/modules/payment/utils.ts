@@ -8,6 +8,9 @@ import mongoose from 'mongoose';
 import { Party } from '../party/party.model';
 import Stripe from 'stripe';
 import { HostPayoutService } from '../payoutHost/payoutHost.service';
+import { User } from '../user/user.model';
+import AppError from '../../errors/AppError';
+import { StatusCodes } from 'http-status-codes';
 
 export const stripe = new Stripe(config.payment.stripe_secret_key!, {
   apiVersion: '2025-01-27.acacia',
@@ -161,23 +164,19 @@ export const createPaymentIntent = async (
 ) => {
   const accessToken = await getPayPalAccessToken();
 
-  // Check if the party has available seats and if the user is already a participant
-  const party = await Party.findById(partyId);
-  if (!party) {
-    throw new Error('Party not found');
+  const [userExists, party] = await Promise.all([
+    User.isExistUserById(userId!),
+    Party.findById(partyId),
+  ]);
+  if (!userExists) throw new AppError(StatusCodes.NOT_FOUND, 'User not found');
+  if (!party) throw new AppError(StatusCodes.NOT_FOUND, 'Party not found');
+  if (!party.participants) party.participants = [];
+
+  // Already participant?
+  if (party.participants.some(p => p.toString() === userId)) {
+    throw new AppError(StatusCodes.BAD_REQUEST, 'Already a participant');
   }
 
-  if (party.soldTicket >= party.totalSits) {
-    throw new Error('No available seats for this party');
-  }
-
-  const id = new mongoose.Types.ObjectId(userId);
-
-  if (party?.participants?.includes(id)) {
-    throw new Error('User has already joined this party');
-  }
-
-  //TODO: replace success and cancel url with frontend url
   // Create PayPal Order
   const response = await axios.post(
     'https://api-m.paypal.com/v2/checkout/orders', // Use live endpoint for production

@@ -34,17 +34,23 @@ const createStripePaymentIntent = async (
   // Check if the party has available seats and if the user is already a participant
   const party = await Party.findById(partyId);
   if (!party) {
-    throw new Error('Party not found');
+    throw new AppError(StatusCodes.NOT_FOUND, 'Party not found');
   }
 
-  if (party.soldTicket >= party.totalSits) {
-    throw new Error('No available seats for this party');
+  if (ticket > party.totalSits) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'No available seats for this party',
+    );
   }
 
   const id = new mongoose.Types.ObjectId(userId);
 
   if (party?.participants?.includes(id)) {
-    throw new Error('User has already joined this party');
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      'User has already joined this party',
+    );
   }
 
   try {
@@ -58,7 +64,7 @@ const createStripePaymentIntent = async (
           },
           unit_amount: amount * 100,
         },
-        quantity: 1,
+        quantity: ticket,
       },
     ];
 
@@ -185,7 +191,10 @@ const handleStripeWebhookService = async (event: Stripe.Event) => {
 
         // Update party income by 90% of amount (host's income)
         const hostAmount = +(amountTotal * 0.85).toFixed(2);
-        party.income += hostAmount;
+
+        await Party.findByIdAndUpdate(partyId, {
+          $inc: { income: hostAmount },
+        });
 
         // Update party participants, seats, sold tickets
         const chatGroup = await ChatGroup.findOne({
@@ -222,7 +231,11 @@ const handleStripeWebhookService = async (event: Stripe.Event) => {
           party.totalSits -= Number(ticket);
           party.soldTicket += Number(ticket);
 
-          await party.save();
+          await Party.findByIdAndUpdate(partyId, {
+            participants: party.participants,
+            totalSits: party.totalSits,
+            soldTicket: party.soldTicket,
+          });
           return party;
         }
 
@@ -241,7 +254,11 @@ const handleStripeWebhookService = async (event: Stripe.Event) => {
         party.participants.push(new mongoose.Types.ObjectId(userId));
         party.totalSits -= Number(ticket);
         party.soldTicket += Number(ticket);
-        await party.save();
+        await Party.findByIdAndUpdate(partyId, {
+          participants: party.participants,
+          totalSits: party.totalSits,
+          soldTicket: party.soldTicket,
+        });
 
         // send the confirmation email to the user
 
