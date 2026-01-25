@@ -14,6 +14,7 @@ import { emailHelper } from '../../../helpers/emailHelper';
 import { Payment } from '../payment/payment.model';
 import { captureOrder, payoutToUser, stripeUserPayout } from '../payment/utils';
 import { sendPushNotification } from '../../../util/onesignal';
+import dayjs from 'dayjs';
 
 const createParyty = async (userId: string, payload: IParty) => {
   const isUserExist = await User.isExistUserById(userId);
@@ -28,6 +29,8 @@ const createParyty = async (userId: string, payload: IParty) => {
       'You are not authorized to create a party!',
     );
   }
+
+  payload.total = payload.totalSits;
 
   payload.userId = new mongoose.Types.ObjectId(userId);
 
@@ -475,19 +478,6 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
         { session },
       );
     } else if (payload.paymentMethod === 'STRIPE') {
-      // Handle Stripe payment
-
-      // const paymentIntent = await stripe.paymentIntents.retrieve(
-      //   payload.orderId,
-      // );
-
-      // if (!paymentIntent || paymentIntent.status !== 'succeeded') {
-      //   throw new AppError(
-      //     StatusCodes.PAYMENT_REQUIRED,
-      //     'Payment not completed',
-      //   );
-      // }
-
       captureId = payload.orderId;
       captureStatus = 'COMPLETED';
       paypalEmail = undefined;
@@ -548,7 +538,7 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
     }
 
     // No chat group, create one
-    await ChatGroup.create(
+    const result = await ChatGroup.create(
       [
         {
           partyId: payload.partyId,
@@ -561,6 +551,28 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
       ],
       { session },
     );
+
+    // check if chat group created and less than 7 days to party date then activate the group
+    const gp = await ChatGroup.findById(result[0]._id).session(session);
+
+    if (!gp) {
+      throw new AppError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        'Error creating chat group!',
+      );
+    }
+    // Dates
+    const today = dayjs();
+    const activateDate = dayjs(party.partyDate).subtract(7, 'day');
+    const deactivateDate = dayjs(party.partyDate).add(7, 'day');
+
+    // Activate chat group
+    if (today.isAfter(activateDate) && today.isBefore(deactivateDate)) {
+      if (!gp.isActive) {
+        gp.isActive = true;
+        await gp.save({ session });
+      }
+    }
 
     party.participants.push(new mongoose.Types.ObjectId(userId));
     party.totalSits -= payload.ticket;

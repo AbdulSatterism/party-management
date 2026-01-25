@@ -40,7 +40,7 @@ export const groupActivation = async () => {
   }
 };
 
-// Run every 12 hours (twice daily at 12:00 AM and 12:00 PM)
-cron.schedule('0 0,12 * * *', async () => {
+// Run every 1 hour
+cron.schedule('0 * * * *', async () => {
   await groupActivation();
 });

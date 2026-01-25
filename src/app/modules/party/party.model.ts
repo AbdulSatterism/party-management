@@ -15,6 +15,7 @@ const partySchema = new Schema<IPartyDoc>(
     partyDate: { type: Date, required: true },
     country: { type: String, required: false },
     address: { type: String, required: true },
+    total: { type: Number, required: false, default: 0 },
     soldTicket: { type: Number, default: 0 },
     payoutOption: { type: String, enum: ['PAYPAL', 'STRIPE'], required: true },
     location: {

@@ -11,6 +11,7 @@ export interface IParty {
   income: number;
   participants?: Types.ObjectId[];
   totalSits: number;
+  total: number;
   partyFee: number;
   country?: string;
   address: string;
