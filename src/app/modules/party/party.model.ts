@@ -27,7 +27,7 @@ const partySchema = new Schema<IPartyDoc>(
     ],
     partyFee: { type: Number, required: true },
     totalSits: { type: Number, required: true },
-    paypalAccount: { type: String, required: true },
+    paypalAccount: { type: String, required: false, default: '' },
   },
   { timestamps: true, versionKey: false },
 );
