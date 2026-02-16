@@ -220,10 +220,13 @@ const getAllPartiesByHost = async (userId: string) => {
     throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
   }
 
-  const hostParties = await Party.find({ userId }).populate([
-    { path: 'participants', select: 'name email image' },
-    { path: 'userId', select: 'name email image' },
-  ]);
+  const hostParties = await Party.find({ userId })
+    .populate([
+      { path: 'participants', select: 'name email image' },
+      { path: 'userId', select: 'name email image' },
+    ])
+    .sort({ createdAt: -1 })
+    .lean();
 
   return hostParties;
 };

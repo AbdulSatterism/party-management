@@ -26,6 +26,7 @@ const chattingGroupbySpecificUser = async (
 
   const groups = await ChatGroup.find(baseQuery)
     .populate('partyId', 'image partyDate partyName -_id')
+    .sort({ createdAt: -1 })
     .lean();
   return groups;
 };
