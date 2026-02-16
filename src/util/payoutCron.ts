@@ -57,7 +57,7 @@ const schedulePayoutCron = () => {
           // Process payout based on selected payment method
           if (party.payoutOption === 'PAYPAL') {
             const payoutResponse = await payoutToHost(
-              party.paypalAccount,
+              party.paypalAccount!,
               payoutAmount,
               party.partyName,
               partyIdStr,
@@ -68,7 +68,7 @@ const schedulePayoutCron = () => {
             await HostPayoutService.createHostPayout({
               userId: party.userId,
               partyId: new mongoose.Types.ObjectId(partyIdStr),
-              email: party.paypalAccount,
+              email: party.paypalAccount!,
               amount: payoutAmount,
               status: 'COMPLETED',
               paypalBatchId,
@@ -89,7 +89,7 @@ const schedulePayoutCron = () => {
               description: `Refund for leaving party: ${party.partyName}`,
               userId: party.userId?.toString() || '',
               partyId: partyIdStr,
-              receiverEmail: party.paypalAccount,
+              receiverEmail: party.paypalAccount || '',
             });
 
             // push notification to host about payout
@@ -111,7 +111,7 @@ const schedulePayoutCron = () => {
 
           // Send confirmation email to host
           const emailValues: IPayoutConfirmation = {
-            email: partyHost.email || party.paypalAccount,
+            email: partyHost.email || party.paypalAccount || '',
             partyName: party.partyName,
             amount: payoutAmount,
             status: 'COMPLETED',
