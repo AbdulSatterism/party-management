@@ -15,6 +15,9 @@ import { Payment } from '../payment/payment.model';
 import { captureOrder, payoutToUser, stripeUserPayout } from '../payment/utils';
 import { sendPushNotification } from '../../../util/onesignal';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 
 const createParyty = async (userId: string, payload: IParty) => {
   const isUserExist = await User.isExistUserById(userId);
@@ -267,157 +270,6 @@ const updateParty = async (
   return updatedParty;
 };
 
-/*
-const joinParty = async (userId: string, payload: any) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    const [isUserExist, isPartyExist] = await Promise.all([
-      User.isExistUserById(userId),
-      Party.findById(payload.partyId),
-    ]);
-
-    if (!isUserExist) {
-      throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
-    }
-
-    if (!isPartyExist) {
-      throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
-    }
-
-    // Check if enough seats are available
-    if (isPartyExist.totalSits < payload.ticket) {
-      throw new AppError(
-        StatusCodes.BAD_REQUEST,
-        'Not enough seats available!',
-      );
-    }
-
-    const isParticipant = isPartyExist.participants?.some(
-      participantId => participantId.toString() === userId,
-    );
-
-    if (isParticipant) {
-      throw new AppError(
-        StatusCodes.BAD_REQUEST,
-        'You are already a participant!',
-      );
-    }
-
-    // Calculate income after 15% deduction
-    const deductionRate = 0.85; // 85% after 15% deduction
-    const finalAmount = payload.amount * deductionRate;
-
-    const chatGroup = await ChatGroup.findOne({
-      partyId: payload.partyId,
-    }).session(session);
-
-    if (chatGroup) {
-      const isUserInGroup = chatGroup.members.find(
-        member => member.userId.toString() === userId,
-      );
-
-      if (!isUserInGroup) {
-        await ChatGroup.findByIdAndUpdate(
-          chatGroup._id,
-          {
-            $push: {
-              members: {
-                userId,
-                ticket: payload.ticket,
-                limit: payload.ticket,
-              },
-            },
-          },
-          { new: true, session },
-        );
-      }
-
-      const updatedParty = await Party.findByIdAndUpdate(
-        payload.partyId,
-        {
-          $push: { participants: userId },
-          $inc: {
-            totalSits: -payload.ticket,
-            income: finalAmount,
-            soldTicket: payload.ticket,
-          },
-        },
-        { new: true, session },
-      );
-
-      // send the confirmation email to the user
-
-      const emailValues: IPartyJoinConfirmation = {
-        email: isUserExist.email,
-        partyName: isPartyExist.partyName,
-        partyDate: isPartyExist.partyDate
-          ? isPartyExist.partyDate.toISOString().split('T')[0]
-          : '',
-        ticketCount: payload.ticket,
-        totalPrice: finalAmount.toFixed(2),
-      };
-
-      // Send email to host
-      const hostConfermationMail =
-        emailTemplate.partyJoinedConfirmation(emailValues);
-      emailHelper.sendEmail(hostConfermationMail);
-
-      await session.commitTransaction();
-      return updatedParty;
-    }
-
-    const [newChatGroup, updatedParty] = await Promise.all([
-      ChatGroup.create(
-        [
-          {
-            partyId: payload.partyId,
-            groupName: isPartyExist.partyName,
-            members: [
-              {
-                userId,
-                ticket: payload.ticket,
-                limit: payload.ticket,
-              },
-            ],
-          },
-        ],
-        { session },
-      ),
-      Party.findByIdAndUpdate(
-        payload.partyId,
-        {
-          $push: { participants: userId },
-          $inc: {
-            totalSits: -payload.ticket,
-            income: finalAmount,
-            soldTicket: payload.ticket,
-          },
-        },
-        { new: true, session },
-      ),
-    ]);
-
-    if (!newChatGroup[0] || !updatedParty) {
-      throw new AppError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        'Error creating chat group or updating party!',
-      );
-    }
-
-    await session.commitTransaction();
-    return updatedParty;
-  } catch (error) {
-    await session.abortTransaction();
-    throw error;
-  } finally {
-    session.endSession();
-  }
-};
-
-*/
-
 interface JoinPartyPayload {
   partyId: string;
   ticket: number;
@@ -555,26 +407,22 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
       { session },
     );
 
-    // check if chat group created and less than 7 days to party date then activate the group
     const gp = await ChatGroup.findById(result[0]._id).session(session);
-
     if (!gp) {
       throw new AppError(
         StatusCodes.INTERNAL_SERVER_ERROR,
         'Error creating chat group!',
       );
     }
-    // Dates
-    const today = dayjs();
-    const activateDate = dayjs(party.partyDate).subtract(7, 'day');
-    const deactivateDate = dayjs(party.partyDate).add(7, 'day');
 
-    // Activate chat group
-    if (today.isAfter(activateDate) && today.isBefore(deactivateDate)) {
-      if (!gp.isActive) {
-        gp.isActive = true;
-        await gp.save({ session });
-      }
+    const today = dayjs().utc().startOf('day');
+    const partyDate = dayjs(party.partyDate).utc().startOf('day');
+
+    const diffDays = partyDate.diff(today, 'day'); 
+  
+    if (diffDays >= 0 && diffDays <= 7 && !gp.isActive) {
+      gp.isActive = true;
+      await gp.save({ session });
     }
 
     party.participants.push(new mongoose.Types.ObjectId(userId));
@@ -772,124 +620,6 @@ const leaveParty = async (userId: string, partyId: string) => {
     session.endSession();
   }
 };
-
-/*
-const leaveParty = async (userId: string, partyId: string) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  try {
-    const [isUserExist, isPartyExist, chatGroup] = await Promise.all([
-      User.isExistUserById(userId),
-      Party.findById(partyId)
-        .populate('participants', 'name email image')
-        .lean(),
-      ChatGroup.findOne({ partyId }).session(session),
-    ]);
-
-    if (!isUserExist) {
-      throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
-    }
-
-    if (!isPartyExist) {
-      throw new AppError(StatusCodes.NOT_FOUND, 'Party not found!');
-    }
-
-    // const currentDate = new Date();
-    // const partyDate = new Date(isPartyExist.partyDate);
-    // const daysDifference = Math.ceil(
-    //   (partyDate.getTime() - currentDate.getTime()) / (1000 * 3600 * 24),
-    // );
-
-    // if (daysDifference < 7) {
-    //   throw new AppError(
-    //     StatusCodes.BAD_REQUEST,
-    //     'Cannot leave party within 7 days of the event!',
-    //   );
-    // }
-
-    const currentDate = new Date();
-    const partyDate = new Date(isPartyExist.partyDate);
-    const hoursDifference = Math.ceil(
-      (partyDate.getTime() - currentDate.getTime()) / 36_00_000,
-    );
-
-    if (hoursDifference < 72) {
-      throw new AppError(
-        StatusCodes.BAD_REQUEST,
-        'Cannot leave party within 72 hours of the event!',
-      );
-    }
-
-    const isParticipant = isPartyExist.participants?.some(
-      participantId => participantId._id.toString() === userId.toString(),
-    );
-
-    if (!isParticipant) {
-      throw new AppError(StatusCodes.BAD_REQUEST, 'You are not a participant!');
-    }
-
-    if (!chatGroup) {
-      throw new AppError(StatusCodes.NOT_FOUND, 'Chat group not found!');
-    }
-
-    const userInGroup = chatGroup.members.find(
-      member => member.userId.toString() === userId,
-    );
-
-    if (!userInGroup) {
-      throw new AppError(
-        StatusCodes.BAD_REQUEST,
-        'User not found in chat group!',
-      );
-    }
-
-    const ticketsToReturn = userInGroup.ticket;
-    const incomeToDeduct = ticketsToReturn * isPartyExist.partyFee * 0.95; // 95% of the total amount (5% deduction)
-
-    await ChatGroup.findByIdAndUpdate(
-      chatGroup._id,
-      {
-        $pull: {
-          members: {
-            userId: new mongoose.Types.ObjectId(userId),
-          },
-        },
-      },
-      { new: true, session },
-    );
-
-    const updatedParty = await Party.findByIdAndUpdate(
-      partyId,
-      {
-        $pull: { participants: userId },
-        $inc: {
-          totalSits: ticketsToReturn,
-          soldTicket: -ticketsToReturn,
-          income: -incomeToDeduct, // Deduct the income
-        },
-      },
-      { new: true, session },
-    );
-
-    if (!updatedParty) {
-      throw new AppError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        'Error updating party!',
-      );
-    }
-
-    await session.commitTransaction();
-    return updatedParty;
-  } catch (error) {
-    await session.abortTransaction();
-    throw error;
-  } finally {
-    session.endSession();
-  }
-};
-
-
-*/
 
 const upcomingParties = async (userId: string) => {
   const isUserExist = await User.isExistUserById(userId);
