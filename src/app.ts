@@ -7,6 +7,8 @@ import { Morgan } from './shared/morgen';
 import notFoundRoute from './app/middlewares/notFoundRoute';
 import path from 'path';
 import { PaymentController } from './app/modules/payment/payment.controller';
+import { wellKnownContentTypes } from './app/middlewares/wellKnownContentTypes';
+import deeplinkRoutes from './app/modules/deeplink/deeplink.routes';
 
 const app = express();
 
@@ -29,12 +31,14 @@ app.post(
   PaymentController.paymentStripeWebhookController,
 );
 
-app.use((req, res, next) => {
-  if (req.path.endsWith('apple-app-site-association')) {
-    res.type('application/json');
-  }
-  next();
-});
+// app.use((req, res, next) => {
+//   if (req.path.endsWith('apple-app-site-association')) {
+//     res.type('application/json');
+//   }
+//   next();
+// });
+
+app.use(wellKnownContentTypes);
 
 // body parser
 app.use(express.json());
@@ -43,6 +47,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(process.cwd(), 'public')));
 
 app.use(express.static('uploads'));
+
+// deeplink routes
+
+app.use('/', deeplinkRoutes);
 
 //router
 app.use('/api/v1', router);
