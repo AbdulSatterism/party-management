@@ -31,13 +31,6 @@ app.post(
   PaymentController.paymentStripeWebhookController,
 );
 
-// app.use((req, res, next) => {
-//   if (req.path.endsWith('apple-app-site-association')) {
-//     res.type('application/json');
-//   }
-//   next();
-// });
-
 app.use(wellKnownContentTypes);
 
 // body parser
