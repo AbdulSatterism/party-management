@@ -74,10 +74,10 @@ const createStripePaymentIntent = async (
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      // success_url: 'http://10.10.12.98:3011/public/success.html',
-      success_url: 'https://api.usedistraction.com/public/success.html',
+      // success_url: 'http://10.10.12.98:3011/success.html',
+      success_url: 'https://api.usedistraction.com/success.html',
 
-      cancel_url: 'https://api.usedistraction.com/public/error.html',
+      cancel_url: 'https://api.usedistraction.com/error.html',
       metadata: {
         userId,
         partyId,
