@@ -5,9 +5,7 @@
       {
         "appID": "S2NCYBSC77.com.toyosiobayemidistration",
         "paths": [
-          "/party/*",
-          "/payment/success*",
-          "/payment/cancel*"
+          "/party/*"
         ]
       }
     ]
