@@ -203,9 +203,7 @@ const handleStripeWebhookService = async (event: Stripe.Event) => {
         });
 
         // Update party participants, seats, sold tickets
-        const chatGroup = await ChatGroup.findOne({
-          partyId,
-        });
+        const chatGroup = await ChatGroup.findOne({ partyId });
 
         if (chatGroup) {
           if (!chatGroup.members.some(m => m.userId.toString() === userId)) {
@@ -233,56 +231,51 @@ const handleStripeWebhookService = async (event: Stripe.Event) => {
               message,
             );
           }
+
           party.participants.push(new mongoose.Types.ObjectId(userId));
           party.totalSits -= Number(ticket);
           party.soldTicket += Number(ticket);
-
           await party.save();
-          return party;
-        }
-
-        // No chat group, create one
-        const result = await ChatGroup.create(
-          [
-            {
-              partyId: partyId,
-              groupName: party.partyName,
-              members: [
-                { userId, ticket: Number(ticket), limit: Number(ticket) },
-                { userId: party.userId, ticket: 0, limit: 0 }, // Add party host as member
-              ],
-            },
+        } else {
+          // No chat group, create one
+          const result = await ChatGroup.create(
+            [
+              {
+          partyId,
+          groupName: party.partyName,
+          members: [
+            { userId, ticket: Number(ticket), limit: Number(ticket) },
+            { userId: party.userId, ticket: 0, limit: 0 },
           ],
-          { session },
-        );
-
-        const gp = await ChatGroup.findById(result[0]._id);
-        if (!gp) {
-          throw new AppError(
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            'Error creating chat group!',
+              },
+            ],
+            { session },
           );
+
+          const gp = await ChatGroup.findById(result[0]._id);
+          if (!gp) {
+            throw new AppError(
+              StatusCodes.INTERNAL_SERVER_ERROR,
+              'Error creating chat group!',
+            );
+          }
+
+          const today = dayjs().utc().startOf('day');
+          const partyDate = dayjs(party.partyDate).utc().startOf('day');
+          const diffDays = partyDate.diff(today, 'day');
+
+          if (diffDays >= 0 && diffDays <= 7 && !gp.isActive) {
+            gp.isActive = true;
+            await gp.save();
+          }
+
+          party.participants.push(new mongoose.Types.ObjectId(userId));
+          party.totalSits -= Number(ticket);
+          party.soldTicket += Number(ticket);
+          await party.save();
         }
 
-        const today = dayjs().utc().startOf('day');
-        const partyDate = dayjs(party.partyDate).utc().startOf('day');
-
-        const diffDays = partyDate.diff(today, 'day');
-
-        if (diffDays >= 0 && diffDays <= 7 && !gp.isActive) {
-          gp.isActive = true;
-          await gp.save();
-        }
-
-        party.participants.push(new mongoose.Types.ObjectId(userId));
-        party.totalSits -= Number(ticket);
-        party.soldTicket += Number(ticket);
-        await party.save();
-
-        // send the confirmation email to the user
-
-        // const finalAmount = payload.amount * 0.85; // host income after 15% deduction
-
+        // Send confirmation email to user
         const emailValues: IPartyJoinConfirmation = {
           email: userExists.email,
           partyName: party.partyName,
@@ -293,111 +286,17 @@ const handleStripeWebhookService = async (event: Stripe.Event) => {
           totalPrice: Number(amount).toFixed(2),
         };
 
-        // Send email to host
-        const hostConfermationMail =
+        const hostConfirmationMail =
           emailTemplate.partyJoinedConfirmation(emailValues);
-        emailHelper.sendEmail(hostConfermationMail);
+        emailHelper.sendEmail(hostConfirmationMail);
 
-        // send push notification to party host about new participant
+        // Send push notification to party host
         const message = `${userExists?.name || 'new participant'} joined your party: ${party.partyName}`;
         await sendPushNotification(
           partyHost?.playerId as string[],
           partyHost?.name || 'Host',
           message,
         );
-        /*
-        // Update party participants, seats, sold tickets
-        const chatGroup = await ChatGroup.findOne({
-          partyId: partyId,
-        });
-
-        if (chatGroup) {
-          if (!chatGroup.members.some(m => m.userId.toString() === userId)) {
-            chatGroup.members.push({
-              userId: new mongoose.Types.ObjectId(userId),
-              ticket: Number(ticket),
-              limit: Number(ticket),
-            });
-            await chatGroup.save();
-
-            // send push notification to all participants about new member
-            const message = `${userExists?.name || 'new member'} joined the party: ${party.partyName}`;
-            const memberUserIds = chatGroup.members?.map(m =>
-              m.userId.toString(),
-            ) as string[];
-            const memberUsers = await User.find({ _id: { $in: memberUserIds } })
-              .select('playerId')
-              .lean();
-            const playerIds = memberUsers
-              .map(u => u.playerId)
-              .flat() as string[];
-            await sendPushNotification(
-              playerIds,
-              partyHost?.name || 'Host',
-              message,
-            );
-          }
-          party.participants.push(new mongoose.Types.ObjectId(userId));
-          party.totalSits -= Number(ticket);
-          party.soldTicket += Number(ticket);
-
-          await Party.findByIdAndUpdate(partyId, {
-            participants: party.participants,
-            totalSits: party.totalSits,
-            soldTicket: party.soldTicket,
-          });
-          return party;
-        }
-
-        // No chat group, create one
-        await ChatGroup.create([
-          {
-            partyId: partyId,
-            groupName: party.partyName,
-            members: [
-              { userId, ticket: Number(ticket), limit: Number(ticket) },
-              { userId: party.userId, ticket: 0, limit: 0 }, // Add party host as member
-            ],
-          },
-        ]);
-
-        party.participants.push(new mongoose.Types.ObjectId(userId));
-        party.totalSits -= Number(ticket);
-        party.soldTicket += Number(ticket);
-        await Party.findByIdAndUpdate(partyId, {
-          participants: party.participants,
-          totalSits: party.totalSits,
-          soldTicket: party.soldTicket,
-        });
-
-        // send the confirmation email to the user
-
-        const finalAmount = Number(amount) * 0.85; // host income after 15% deduction
-
-        const emailValues: IPartyJoinConfirmation = {
-          email: userExists.email,
-          partyName: party.partyName,
-          partyDate: party.partyDate
-            ? party.partyDate.toISOString().split('T')[0]
-            : '',
-          ticketCount: Number(ticket),
-          totalPrice: finalAmount.toFixed(2),
-        };
-
-        // Send email to host
-        const hostConfermationMail =
-          emailTemplate.partyJoinedConfirmation(emailValues);
-        emailHelper.sendEmail(hostConfermationMail);
-
-        // send push notification to party host about new participant
-        const message = `${userExists?.name || 'new participant'} joined your party: ${party.partyName}`;
-        await sendPushNotification(
-          partyHost?.playerId as string[],
-          partyHost?.name || 'Host',
-          message,
-        );
-
-        */
 
         return party;
       } catch (error) {
