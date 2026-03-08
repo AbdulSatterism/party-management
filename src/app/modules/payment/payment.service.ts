@@ -238,21 +238,20 @@ const handleStripeWebhookService = async (event: Stripe.Event) => {
           await party.save();
         } else {
           // No chat group, create one
-          const result = await ChatGroup.create(
-            [
+          const result = await ChatGroup.create({
+            partyId,
+            groupName: party.partyName,
+            members: [
               {
-          partyId,
-          groupName: party.partyName,
-          members: [
-            { userId, ticket: Number(ticket), limit: Number(ticket) },
-            { userId: party.userId, ticket: 0, limit: 0 },
-          ],
+                userId: new mongoose.Types.ObjectId(userId),
+                ticket: Number(ticket),
+                limit: Number(ticket),
               },
+              { userId: party.userId, ticket: 0, limit: 0 },
             ],
-            { session },
-          );
+          });
 
-          const gp = await ChatGroup.findById(result[0]._id);
+          const gp = await ChatGroup.findById(result._id);
           if (!gp) {
             throw new AppError(
               StatusCodes.INTERNAL_SERVER_ERROR,
