@@ -418,8 +418,8 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
     const today = dayjs().utc().startOf('day');
     const partyDate = dayjs(party.partyDate).utc().startOf('day');
 
-    const diffDays = partyDate.diff(today, 'day'); 
-  
+    const diffDays = partyDate.diff(today, 'day');
+
     if (diffDays >= 0 && diffDays <= 7 && !gp.isActive) {
       gp.isActive = true;
       await gp.save({ session });
@@ -432,7 +432,7 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
 
     // send the confirmation email to the user
 
-    const finalAmount = payload.amount * 0.85; // host income after 15% deduction
+    // const finalAmount = payload.amount * 0.85; // host income after 15% deduction
 
     const emailValues: IPartyJoinConfirmation = {
       email: userExists.email,
@@ -441,7 +441,7 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
         ? party.partyDate.toISOString().split('T')[0]
         : '',
       ticketCount: payload.ticket,
-      totalPrice: finalAmount.toFixed(2),
+      totalPrice: payload.amount.toFixed(2),
     };
 
     // Send email to host
