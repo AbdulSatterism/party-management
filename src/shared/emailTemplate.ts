@@ -246,7 +246,7 @@ const partyJoinedConfirmation = (values: IPartyJoinConfirmation) => {
           </tr>
           <tr>
             <td style="padding: 8px 0; font-size: 16px; color: #555;">Total Price:</td>
-            <td style="padding: 8px 0; font-size: 16px; color: #E73E1E; font-weight: 700; text-align: right;">$ ${values.totalPrice}</td>
+            <td style="padding: 8px 0; font-size: 16px; color: #E73E1E; font-weight: 700; text-align: right;">£ ${values.totalPrice}</td>
           </tr>
         </table>
       </div>
@@ -301,7 +301,7 @@ const poyoutHostConfirmation = (values: IPayoutConfirmation) => {
       
       <div style="background-color: #FFF5F4; border-left: 4px solid #E73E1E; padding: 15px; margin-bottom: 30px;">
         <p style="font-size: 16px; color: #555; line-height: 1.6; margin: 0;">
-          <strong style="color: #E73E1E;">Payment processed:</strong>$ ${values.amount} for ${values.partyName}
+          <strong style="color: #E73E1E;">Payment processed:</strong>£ ${values.amount} for ${values.partyName}
         </p>
       </div>
       
@@ -313,7 +313,7 @@ const poyoutHostConfirmation = (values: IPayoutConfirmation) => {
           </tr>
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #555;">Amount:</td>
-            <td style="padding: 12px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #E73E1E; font-weight: 700; text-align: right;">${values.amount}</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #E73E1E; font-weight: 700; text-align: right;">£ ${values.amount}</td>
           </tr>
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid #eee; font-size: 16px; color: #555;">Status:</td>
