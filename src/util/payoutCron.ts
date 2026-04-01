@@ -13,23 +13,19 @@ import { sendPushNotification } from './onesignal';
 const schedulePayoutCron = () => {
   // Runs every day at 10  server time
 
-  cron.schedule('0 10 * * *', async () => {
+  cron.schedule('0 */12 * * *', async () => {
     try {
       logger.info('Cron job started: Checking parties for payout');
 
-      const today = new Date();
-      const futureDate = new Date();
-
-      const startDateStr = today.toISOString();
-      futureDate.setDate(today.getDate() + 2);
-      const endDateStr = futureDate.toISOString();
+      const now = new Date(); // current date/time
+      const next24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
 
       const partiesToPayout = await Party.find({
-        partyDate: { $gte: startDateStr, $lte: endDateStr },
+        partyDate: { $gte: now, $lte: next24Hours },
         income: { $gt: 0 },
-        paypalAccount: { $exists: true, $ne: null },
+        payoutOption: { $in: ['PAYPAL', 'STRIPE'] },
       }).select(
-        '_id partyName partyDate partyFee address income paypalAccount',
+        '_id partyName partyDate partyFee address income paypalAccount payoutOption userId',
       );
 
       if (partiesToPayout.length === 0) {
@@ -45,8 +41,8 @@ const schedulePayoutCron = () => {
             `Payout started for party ${party._id} (${party.partyName}) amount: $${payoutAmount}`,
           );
 
-          // Fetch party host
           const partyHost = await User.findById(party.userId);
+
           if (!partyHost) {
             throw new Error(`Party host not found for party ${party._id}`);
           }
@@ -77,6 +73,7 @@ const schedulePayoutCron = () => {
 
             // push notification to host about payout
             const message = `${partyHost?.name} you received payment from: ${party.partyName} by PayPal`;
+
             await sendPushNotification(
               partyHost?.playerId as string[],
               partyHost?.name || 'Host',
