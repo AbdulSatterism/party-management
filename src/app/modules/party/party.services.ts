@@ -9,13 +9,14 @@ import unlinkFile from '../../../shared/unlinkFile';
 import { ChatGroup } from '../chatGroup/chatGroup.model';
 import { SavedParty } from '../savedParty/savedParty.model';
 import { IPartyJoinConfirmation } from '../../../types/emailTamplate';
-import { emailTemplate } from '../../../shared/emailTemplate';
+import { emailTemplate, IleaveParty } from '../../../shared/emailTemplate';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { Payment } from '../payment/payment.model';
-import { captureOrder, payoutToUser, stripeUserPayout } from '../payment/utils';
+import { captureOrder } from '../payment/utils';
 import { sendPushNotification } from '../../../util/onesignal';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { LeaveRecord } from '../leaveRecord/leaveRecord.model';
 
 dayjs.extend(utc);
 
@@ -526,15 +527,15 @@ const leaveParty = async (userId: string, partyId: string) => {
 
     // Issue payout refund from admin account to user
 
-    const userPaypalEmail = await User.findById(userId)
-      .select('paypalAccount')
-      .lean();
-    if (!userPaypalEmail?.paypalAccount) {
-      throw new AppError(
-        StatusCodes.BAD_REQUEST,
-        'User PayPal email not found for refund!',
-      );
-    }
+    // const userPaypalEmail = await User.findById(userId)
+    //   .select('paypalAccount')
+    //   .lean();
+    // if (!userPaypalEmail?.paypalAccount) {
+    //   throw new AppError(
+    //     StatusCodes.BAD_REQUEST,
+    //     'User PayPal email not found for refund!',
+    //   );
+    // }
 
     const paymentInfo = await Payment.findOne({ userId, partyId }).lean();
 
@@ -547,33 +548,26 @@ const leaveParty = async (userId: string, partyId: string) => {
 
     // if payment method is PayPal
 
-    if (paymentInfo.paymentMethod === 'PAYPAL') {
-      await payoutToUser(
-        userPaypalEmail.paypalAccount,
-        refundAmount,
-        isPartyExist.partyName,
-        partyId,
-        userId,
-      );
-    } else if (paymentInfo.paymentMethod === 'STRIPE') {
-      // amount, stripeAccountId, description
-      // stripeAccountId,
-      //   description,
-      //   userId,
-      //   partyId,
-      //   receiverEmail,
-      //   stripePayoutId;
-      const info = {
-        amount: refundAmount,
-        stripeAccountId: isUserExist.stripeAccountId!,
-        description: `Refund for leaving party: ${isPartyExist.partyName}`,
-        userId,
-        partyId,
-        receiverEmail: userPaypalEmail.paypalAccount,
-        stripePayoutId: paymentInfo.transactionId,
-      };
-      await stripeUserPayout(info);
-    }
+    // if (paymentInfo.paymentMethod === 'PAYPAL') {
+    //   await payoutToUser(
+    //     userPaypalEmail.paypalAccount,
+    //     refundAmount,
+    //     isPartyExist.partyName,
+    //     partyId,
+    //     userId,
+    //   );
+    // } else if (paymentInfo.paymentMethod === 'STRIPE') {
+    //   const info = {
+    //     amount: refundAmount,
+    //     stripeAccountId: isUserExist.stripeAccountId!,
+    //     description: `Refund for leaving party: ${isPartyExist.partyName}`,
+    //     userId,
+    //     partyId,
+    //     receiverEmail: userPaypalEmail.paypalAccount,
+    //     stripePayoutId: paymentInfo.transactionId,
+    //   };
+    //   await stripeUserPayout(info);
+    // }
 
     // Update chat group and party accordingly
     await ChatGroup.findByIdAndUpdate(
@@ -602,6 +596,28 @@ const leaveParty = async (userId: string, partyId: string) => {
         StatusCodes.INTERNAL_SERVER_ERROR,
         'Error updating party!',
       );
+
+    // send the confirmation email to the user
+    const emailValues: IleaveParty = {
+      email: isUserExist.email,
+      partyName: isPartyExist.partyName,
+      userName: isUserExist.name,
+      hostName: partyHost?.name || 'Host',
+      returnAmount: refundAmount,
+      transactionId: paymentInfo.transactionId,
+      hostContact: partyHost?.email || partyHost?.phone || 'N/A',
+    };
+
+    const leavePartyMail = emailTemplate.leaveFromParty(emailValues);
+    emailHelper.sendEmail(leavePartyMail);
+
+    // leave record creation
+
+    await LeaveRecord.create({
+      paymentId: paymentInfo._id,
+      refundAmount,
+      refundStatus: 'PENDING',
+    });
 
     // send push notification to host about participant leaving
     const message = `${isUserExist?.name || 'user'} leave from the party: ${isPartyExist.partyName}`;

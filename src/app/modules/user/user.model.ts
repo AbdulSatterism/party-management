@@ -65,6 +65,10 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       default: '',
     },
+    stripeAccount: {
+      type: String,
+      default: '',
+    },
     isDeleted: {
       type: Boolean,
       default: false,

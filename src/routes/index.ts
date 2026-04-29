@@ -15,6 +15,7 @@ import { messageRoutes } from '../app/modules/message/message.route';
 import { hostPayoutRoutes } from '../app/modules/payoutHost/payoutHost.route';
 import { refundUserRoutes } from '../app/modules/payoutUser/payoutUser.route';
 import { PaymentRoutes } from '../app/modules/payment/payment.route';
+import { LeaveRecordRoute } from '../app/modules/leaveRecord/leaveRecord.route';
 
 const router = express.Router();
 
@@ -35,6 +36,7 @@ const apiRoutes = [
   { path: '/message', route: messageRoutes },
   { path: '/payout', route: hostPayoutRoutes },
   { path: '/refund', route: refundUserRoutes },
+  { path: '/leave-record', route: LeaveRecordRoute },
 
   { path: '/payment', route: PaymentRoutes },
 ];

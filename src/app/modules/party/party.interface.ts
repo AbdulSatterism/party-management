@@ -22,4 +22,5 @@ export interface IParty {
     coordinates: [longtitude: number, latitude: number]; //[example:longtitude->90.413, latitude->23.456]
   };
   paypalAccount?: string;
+  stripeAccount?: string;
 }

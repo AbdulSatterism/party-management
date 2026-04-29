@@ -347,6 +347,99 @@ const poyoutHostConfirmation = (values: IPayoutConfirmation) => {
   return data;
 };
 
+export interface IleaveParty {
+  userName: string;
+  partyName: string;
+  hostName: string;
+  returnAmount: number;
+  transactionId: string;
+  hostContact: string;
+  email: string;
+}
+
+const leaveFromParty = (values: IleaveParty) => {
+  const data = {
+    to: values.email,
+    subject: 'Party join confirmation',
+    html: `<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0;">
+  <div style="width: 100%; max-width: 520px; margin: 20px auto; background-color: #fff; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;">
+    
+    <!-- Mini header -->
+    <div style="background-color: #E73E1E; padding: 14px 20px; text-align: center;">
+      <h2 style="color: white; margin: 0; font-size: 20px;">Party Management</h2>
+    </div>
+    
+    <!-- Compact body -->
+    <div style="padding: 24px 24px 20px;">
+      
+      <!-- Greeting & status -->
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="background-color: #E73E1E; width: 48px; height: 48px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.09 15.59L11.5 17L16.5 12L11.5 7L10.09 8.41L12.67 11H3V13H12.67L10.09 15.59Z" fill="white"/>
+            <path d="M19 3H5C3.89 3 3 3.9 3 5V9H5V5H19V19H5V15H3V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3Z" fill="white"/>
+          </svg>
+        </div>
+        <h3 style="color: #222; font-size: 20px; margin: 0 0 4px;">Left party successfully</h3>
+        <p style="color: #666; font-size: 14px; margin: 0;">We've processed your withdrawal</p>
+      </div>
+      
+      <!-- Personal greeting -->
+      <p style="font-size: 15px; color: #333; margin: 0 0 12px;">Hello <strong>${values.userName}</strong>,</p>
+      
+      <!-- Summary card: party, host, return amount + TRANSACTION ID -->
+      <div style="background: #FFF5F4; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; border-left: 3px solid #E73E1E;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+          <span style="font-size: 14px; color: #666;">🎉 Party:</span>
+          <span style="font-weight: 600; color: #222;">${values.partyName}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+          <span style="font-size: 14px; color: #666;">👤 Host:</span>
+          <span style="font-weight: 600; color: #222;">${values.hostName}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+          <span style="font-size: 14px; color: #666;">🆔 Transaction ID:</span>
+          <span style="font-weight: 600; font-family: monospace; background: #FFE8E3; padding: 2px 6px; border-radius: 20px; font-size: 13px;">${values.transactionId}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid #FFD9D2;">
+          <span style="font-size: 15px; font-weight: 600; color: #E73E1E;">💰 Return amount:</span>
+          <span style="font-size: 18px; font-weight: 800; color: #E73E1E;">${values.returnAmount}</span>
+        </div>
+      </div>
+      
+      <!-- Contact block (host + admin) -->
+      <div style="background-color: #F8F8F8; border-radius: 12px; padding: 12px 12px; margin-bottom: 16px;">
+        <p style="font-size: 13px; font-weight: 600; color: #444; margin: 0 0 10px 4px;"> ✉️ Contacts</p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <div style="flex: 1; background: white; border-radius: 10px; padding: 8px 12px;">
+            <p style="margin: 0; font-size: 12px; color: #888;">Host contact</p>
+            <p style="margin: 2px 0 0; font-weight: 600; color: #E73E1E; font-size: 14px;">${values.hostContact}</p>
+          </div>
+          <div style="flex: 1; background: white; border-radius: 10px; padding: 8px 12px;">
+            <p style="margin: 0; font-size: 12px; color: #888;">Admin support</p>
+            <p style="margin: 2px 0 0; font-weight: 600; color: #E73E1E; font-size: 14px;">distraction.play.store@gmail.com</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Short note -->
+      <p style="font-size: 13px; color: #555; margin: 10px 0 0; text-align: center;">
+        Refund will be processed within 5–7 days. Keep your Transaction ID for reference.
+      </p>
+    </div>
+    
+    <!-- Simple footer -->
+    <div style="background-color: #f5f5f5; padding: 14px; text-align: center; border-top: 1px solid #eee;">
+      <p style="font-size: 12px; color: #888; margin: 0;">
+        © 2025 Party Management · <a href="mailto: distraction.play.store@gmail.com" style="color: #E73E1E; text-decoration: none;">Help Center</a>
+      </p>
+    </div>
+  </div>
+</body>`,
+  };
+  return data;
+};
+
 export const emailTemplate = {
   createAccount,
   resetPassword,
@@ -354,4 +447,5 @@ export const emailTemplate = {
   HostRejected,
   partyJoinedConfirmation,
   poyoutHostConfirmation,
+  leaveFromParty,
 };

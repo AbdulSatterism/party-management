@@ -17,6 +17,7 @@ export type IUser = {
   appleId?: string;
   hostRequest?: 'NONE' | 'REQUESTED' | 'APPROVED' | 'REJECTED';
   paypalAccount?: string;
+  stripeAccount?: string;
   playerId?: [string];
   authentication?: {
     isResetPassword: boolean;
