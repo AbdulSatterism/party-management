@@ -180,6 +180,29 @@ const allParties = catchAsync(async (req, res) => {
   });
 });
 
+const getAllIncomeParties = catchAsync(async (req, res) => {
+  const result = await PartyService.getAllIncomeParties(req.query);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'All income parties retrieved successfully',
+    data: result,
+  });
+});
+
+const updatePartyIncome = catchAsync(async (req, res) => {
+  const partyId = req.params.id;
+  const result = await PartyService.updatePartyIncome(partyId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Party income updated successfully',
+    data: result,
+  });
+});
+
 export const PartyController = {
   createParty,
   updateParty,
@@ -193,4 +216,6 @@ export const PartyController = {
   paidParties,
   saveStatus,
   allParties,
+  getAllIncomeParties,
+  updatePartyIncome,
 };

@@ -758,6 +758,62 @@ const getAllParties = async (
   };
 };
 
+// all parties which income > 0 for admin dashboard, sorted by partyDate wchich more close to end .. like partyData hase this formate 2026-08-31T00:00:00.000+00:00
+// so which party is more close to current date show first , also include pagination
+
+const getAllIncomeParties = async (query: Record<string, unknown>) => {
+  const { page, limit } = query;
+  const currentPage = parseInt(page as string) || 1;
+  const pageSize = parseInt(limit as string) || 10;
+  const skip = (currentPage - 1) * pageSize;
+
+  const parties = await Party.find({ income: { $gt: 0 } })
+    .populate([
+      {
+        path: 'userId',
+        select: 'name email image stripeAccount paypalAccount',
+      },
+    ])
+    .sort({ partyDate: 1 })
+    .skip(skip)
+    .limit(pageSize)
+    .lean();
+
+  const totalPages = Math.ceil(
+    (await Party.countDocuments({ income: { $gt: 0 } })) / pageSize,
+  );
+  const totalData = await Party.countDocuments({ income: { $gt: 0 } });
+
+  return {
+    data: parties,
+    meta: {
+      totalData,
+      totalPages,
+      currentPage,
+      pageSize,
+    },
+  };
+};
+
+// update party income by admin... make 0
+
+const updatePartyIncome = async (partyId: string) => {
+  const updatedParty = await Party.findByIdAndUpdate(
+    partyId,
+    { income: 0 },
+    { new: true },
+  );
+
+  if (!updatedParty) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      'Party not found to update income!',
+    );
+  }
+
+  return updatedParty;
+};
+
 export const PartyService = {
   createParyty,
   updateParty,
@@ -771,4 +827,6 @@ export const PartyService = {
   paidParties,
   saveStatus,
   getAllParties,
+  getAllIncomeParties,
+  updatePartyIncome,
 };

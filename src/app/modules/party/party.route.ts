@@ -87,4 +87,11 @@ route.get(
 
 route.get('/all-parties', auth(USER_ROLES.ADMIN), PartyController.allParties);
 
+route.get('/all', auth(USER_ROLES.ADMIN), PartyController.getAllIncomeParties);
+route.patch(
+  '/update-income/:id',
+  auth(USER_ROLES.ADMIN),
+  PartyController.updatePartyIncome,
+);
+
 export const partyRoute = route;
