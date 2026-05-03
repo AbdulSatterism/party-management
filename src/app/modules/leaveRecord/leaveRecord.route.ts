@@ -11,4 +11,16 @@ router.get(
   LeaveRecordController.getAllLeaveRecordByAdmin,
 );
 
+router.get(
+  '/:id',
+  auth(USER_ROLES.ADMIN),
+  LeaveRecordController.getSingleLeaveRecord,
+);
+
+router.patch(
+  '/update-status/:id',
+  auth(USER_ROLES.ADMIN),
+  LeaveRecordController.updateRefundStatus,
+);
+
 export const LeaveRecordRoute = router;

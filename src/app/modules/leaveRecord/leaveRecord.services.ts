@@ -52,6 +52,46 @@ const getAllLeaveRecordByAdmin = async (query: Record<string, unknown>) => {
   };
 };
 
+// get single record
+
+const getSingleLeaveRecord = async (id: string) => {
+  const result = await LeaveRecord.findById(id).populate({
+    path: 'paymentId',
+    select: '-amount -status -_id -createdAt -updatedAt',
+    populate: [
+      {
+        path: 'userId',
+        select: 'name email stripeAccount paypalAccount -_id',
+      },
+      {
+        path: 'partyId',
+        select: 'partyname -_id',
+        populate: [
+          {
+            path: 'userId',
+            select: 'name email -_id',
+          },
+        ],
+      },
+    ],
+  });
+
+  return result;
+};
+
+// update refund status by admin
+const updateRefundStatus = async (id: string) => {
+  const result = await LeaveRecord.findByIdAndUpdate(
+    id,
+    { refundStatus: 'PAID' },
+    { new: true },
+  );
+
+  return result;
+};
+
 export const LeaveRecordService = {
   getAllLeaveRecordByAdmin,
+  getSingleLeaveRecord,
+  updateRefundStatus,
 };
