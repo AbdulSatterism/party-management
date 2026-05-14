@@ -203,6 +203,16 @@ const updatePartyIncome = catchAsync(async (req, res) => {
   });
 });
 
+const deletePartyByAdmin = catchAsync(async (req, res) => {
+  const partyId = req.params.id;
+  await PartyService.deletePartyByAdmin(partyId);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Party deleted successfully',
+  });
+});
+
 export const PartyController = {
   createParty,
   updateParty,
@@ -218,4 +228,5 @@ export const PartyController = {
   allParties,
   getAllIncomeParties,
   updatePartyIncome,
+  deletePartyByAdmin,
 };

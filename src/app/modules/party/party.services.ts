@@ -741,6 +741,7 @@ const getAllParties = async (
       { path: 'participants', select: 'name email image' },
       { path: 'userId', select: 'name email image' },
     ])
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(pageSize)
     .lean();
@@ -814,6 +815,17 @@ const updatePartyIncome = async (partyId: string) => {
   return updatedParty;
 };
 
+// delete party by admin
+const deletePartyByAdmin = async (partyId: string) => {
+  const deletedParty = await Party.findByIdAndDelete(partyId);
+
+  if (!deletedParty) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'Party not found to delete!');
+  }
+
+  return deletedParty;
+};
+
 export const PartyService = {
   createParyty,
   updateParty,
@@ -829,4 +841,5 @@ export const PartyService = {
   getAllParties,
   getAllIncomeParties,
   updatePartyIncome,
+  deletePartyByAdmin,
 };

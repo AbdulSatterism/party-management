@@ -94,4 +94,10 @@ route.patch(
   PartyController.updatePartyIncome,
 );
 
+route.delete(
+  '/:id',
+  auth(USER_ROLES.ADMIN),
+  PartyController.deletePartyByAdmin,
+);
+
 export const partyRoute = route;
