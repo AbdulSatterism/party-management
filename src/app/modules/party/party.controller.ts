@@ -169,8 +169,7 @@ const saveStatus = catchAsync(async (req, res) => {
 });
 
 const allParties = catchAsync(async (req, res) => {
-  const userId = req.user.id;
-  const result = await PartyService.getAllParties(userId, req.query);
+  const result = await PartyService.getAllParties(req.query);
 
   sendResponse(res, {
     success: true,

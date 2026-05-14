@@ -715,38 +715,85 @@ const saveStatus = async (
 };
 
 const getAllParties = async (
-  userId: string,
   query: Record<string, unknown>,
 ) => {
-  const { page, limit } = query;
+  const { page, limit, status } = query;
   const currentPage = parseInt(page as string) || 1;
   const pageSize = parseInt(limit as string) || 10;
   const skip = (currentPage - 1) * pageSize;
 
-  const isUserExist = await User.isExistUserById(userId);
+  let parties = [];
+  let totalPages = 0;
+  let totalData = 0;
 
-  if (!isUserExist) {
-    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
-  }
+  if (status === 'upcoming') {
+    const todayStr = new Date().toISOString().split('T')[0];
+    parties = await Party.find({
+      partyDate: {
+        $gte: todayStr,
+      },
+    })
+      .populate([
+        { path: 'participants', select: 'name email image' },
+        { path: 'userId', select: 'name email image' },
+      ])
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize)
+      .lean();
 
-  if (isUserExist.role !== 'ADMIN') {
-    throw new AppError(
-      StatusCodes.FORBIDDEN,
-      'You are not authorized to view all parties!',
+    totalPages = Math.ceil(
+      (await Party.countDocuments({
+        partyDate: {
+          $gte: todayStr,
+        },
+      })) / pageSize,
     );
-  }
+    totalData = await Party.countDocuments({
+      partyDate: { $gte: todayStr },
+    });
+  } else if (status === 'completed') {
+    const today = new Date();
 
-  const parties = await Party.find({})
-    .populate([
-      { path: 'participants', select: 'name email image' },
-      { path: 'userId', select: 'name email image' },
-    ])
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(pageSize)
-    .lean();
-  const totalPages = Math.ceil((await Party.countDocuments()) / pageSize);
-  const totalData = await Party.countDocuments();
+    const startDateStr = today.toISOString().split('T')[0];
+
+    parties = await Party.find({
+      partyDate: {
+        $lt: startDateStr,
+      },
+    })
+      .populate([
+        { path: 'participants', select: 'name email image' },
+        { path: 'userId', select: 'name email image' },
+      ])
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize)
+      .lean();
+
+    totalPages = Math.ceil(
+      (await Party.countDocuments({
+        partyDate: {
+          $lt: startDateStr,
+        },
+      })) / pageSize,
+    );
+    totalData = await Party.countDocuments({
+      partyDate: { $lt: startDateStr },
+    });
+  } else {
+    parties = await Party.find({})
+      .populate([
+        { path: 'participants', select: 'name email image' },
+        { path: 'userId', select: 'name email image' },
+      ])
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize)
+      .lean();
+    totalPages = Math.ceil((await Party.countDocuments()) / pageSize);
+    totalData = await Party.countDocuments();
+  }
 
   return {
     data: parties,
