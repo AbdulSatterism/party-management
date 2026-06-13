@@ -276,7 +276,7 @@ interface JoinPartyPayload {
   ticket: number;
   amount: number;
   orderId: string;
-  paymentMethod?: 'PAYPAL' | 'STRIPE';
+  paymentMethod?: 'PAYPAL' | 'STRIPE' | 'FREE';
 }
 
 const joinParty = async (userId: string, payload: JoinPartyPayload) => {
@@ -312,8 +312,12 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
     let captureStatus: string;
     let paypalEmail: string | undefined;
 
-    // if payment method is PayPal
-    if (payload.paymentMethod === 'PAYPAL') {
+    // if payment method is FREE
+    if (payload.paymentMethod === 'FREE') {
+      captureId = '';
+      captureStatus = 'COMPLETED';
+      paypalEmail = undefined;
+    } else if (payload.paymentMethod === 'PAYPAL') {
       const captureResponse = await captureOrder(payload.orderId);
       if (!captureResponse || captureResponse.status !== 'COMPLETED') {
         throw new AppError(
@@ -341,19 +345,34 @@ const joinParty = async (userId: string, payload: JoinPartyPayload) => {
       throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid payment method');
     }
 
-    // Save payment record
-    await Payment.create({
-      userId,
-      partyId: payload.partyId,
-      status: captureStatus,
-      transactionId: captureId,
-      amount: payload.amount,
-      paymentMethod: payload.paymentMethod,
-    });
+    // Save payment record only for paid methods
+    if (payload.paymentMethod !== 'FREE') {
+      await Payment.create({
+        userId,
+        partyId: payload.partyId,
+        status: captureStatus,
+        transactionId: captureId,
+        amount: payload.amount,
+        paymentMethod: payload.paymentMethod,
+      });
 
-    // Update party income by 90% of amount (host's income)
-    const hostAmount = +(payload.amount * 0.85).toFixed(2);
-    party.income += hostAmount;
+      // Update party income by 85% of amount (host's income)
+      const hostAmount = +(payload.amount * 0.85).toFixed(2);
+      party.income += hostAmount;
+    }
+
+    // also make record for free join with 0 amount and FREE payment method
+
+    if (payload.paymentMethod === 'FREE') {
+      await Payment.create({
+        userId,
+        partyId: payload.partyId,
+        status: 'COMPLETED',
+        transactionId: 'FREE_JOIN',
+        amount: 0,
+        paymentMethod: payload.paymentMethod,
+      });
+    }
 
     // Update party participants, seats, sold tickets
     const chatGroup = await ChatGroup.findOne({
@@ -519,24 +538,6 @@ const leaveParty = async (userId: string, partyId: string) => {
       );
 
     const ticketsToReturn = userInGroup.ticket;
-    const refundAmount = +(
-      ticketsToReturn *
-      isPartyExist.partyFee *
-      0.95
-    ).toFixed(2); // 95% refund amount
-
-    // Issue payout refund from admin account to user
-
-    // const userPaypalEmail = await User.findById(userId)
-    //   .select('paypalAccount')
-    //   .lean();
-    // if (!userPaypalEmail?.paypalAccount) {
-    //   throw new AppError(
-    //     StatusCodes.BAD_REQUEST,
-    //     'User PayPal email not found for refund!',
-    //   );
-    // }
-
     const paymentInfo = await Payment.findOne({ userId, partyId }).lean();
 
     if (!paymentInfo) {
@@ -546,35 +547,51 @@ const leaveParty = async (userId: string, partyId: string) => {
       );
     }
 
-    // if payment method is PayPal
-
-    // if (paymentInfo.paymentMethod === 'PAYPAL') {
-    //   await payoutToUser(
-    //     userPaypalEmail.paypalAccount,
-    //     refundAmount,
-    //     isPartyExist.partyName,
-    //     partyId,
-    //     userId,
-    //   );
-    // } else if (paymentInfo.paymentMethod === 'STRIPE') {
-    //   const info = {
-    //     amount: refundAmount,
-    //     stripeAccountId: isUserExist.stripeAccountId!,
-    //     description: `Refund for leaving party: ${isPartyExist.partyName}`,
-    //     userId,
-    //     partyId,
-    //     receiverEmail: userPaypalEmail.paypalAccount,
-    //     stripePayoutId: paymentInfo.transactionId,
-    //   };
-    //   await stripeUserPayout(info);
-    // }
-
     // Update chat group and party accordingly
     await ChatGroup.findByIdAndUpdate(
       chatGroup._id,
       { $pull: { members: { userId: new mongoose.Types.ObjectId(userId) } } },
       { new: true, session },
     );
+
+    // Handle FREE payment method - only return tickets
+    if (paymentInfo.paymentMethod === 'FREE') {
+      const updatedParty = await Party.findByIdAndUpdate(
+        partyId,
+        {
+          $pull: { participants: userId },
+          $inc: {
+            totalSits: ticketsToReturn,
+            soldTicket: -ticketsToReturn,
+          },
+        },
+        { new: true, session },
+      );
+
+      if (!updatedParty)
+        throw new AppError(
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          'Error updating party!',
+        );
+
+      // send push notification to host about participant leaving
+      const message = `${isUserExist?.name || 'user'} leave from the party: ${isPartyExist.partyName}`;
+      await sendPushNotification(
+        partyHost?.playerId as string[],
+        partyHost?.name || 'Host',
+        message,
+      );
+
+      await session.commitTransaction();
+      return updatedParty;
+    }
+
+    // Handle PAYPAL/STRIPE payment methods - process refund
+    const refundAmount = +(
+      ticketsToReturn *
+      isPartyExist.partyFee *
+      0.95
+    ).toFixed(2); // 95% refund amount
 
     const incomeToDeduct = ticketsToReturn * isPartyExist.partyFee * 0.95; // Deduct host income
 
@@ -604,7 +621,7 @@ const leaveParty = async (userId: string, partyId: string) => {
       userName: isUserExist.name,
       hostName: partyHost?.name || 'Host',
       returnAmount: refundAmount,
-      transactionId: paymentInfo.transactionId,
+      transactionId: paymentInfo.transactionId as string,
       hostContact: partyHost?.email || partyHost?.phone || 'N/A',
     };
 
@@ -612,7 +629,6 @@ const leaveParty = async (userId: string, partyId: string) => {
     emailHelper.sendEmail(leavePartyMail);
 
     // leave record creation
-
     await LeaveRecord.create({
       paymentId: paymentInfo._id,
       refundAmount,
@@ -714,9 +730,7 @@ const saveStatus = async (
   return !!isSaved; // true if exists, false otherwise
 };
 
-const getAllParties = async (
-  query: Record<string, unknown>,
-) => {
+const getAllParties = async (query: Record<string, unknown>) => {
   const { page, limit, status } = query;
   const currentPage = parseInt(page as string) || 1;
   const pageSize = parseInt(limit as string) || 10;

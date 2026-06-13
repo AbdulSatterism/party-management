@@ -17,7 +17,11 @@ const partySchema = new Schema<IPartyDoc>(
     address: { type: String, required: true },
     total: { type: Number, required: false, default: 0 },
     soldTicket: { type: Number, default: 0 },
-    payoutOption: { type: String, enum: ['PAYPAL', 'STRIPE'], required: true },
+    payoutOption: {
+      type: String,
+      enum: ['PAYPAL', 'STRIPE', 'FREE'],
+      required: true,
+    },
     location: {
       type: { type: String, default: 'Point' },
       coordinates: { type: [Number] }, //[example:longtitude->90.413, latitude->23.456]

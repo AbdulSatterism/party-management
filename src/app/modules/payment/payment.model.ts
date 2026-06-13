@@ -5,12 +5,12 @@ import { IPayment } from './paypment.inteface';
 const paymentSchema = new Schema<IPayment>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    transactionId: { type: String, required: true },
+    transactionId: { type: String, required: false, default: '' },
     partyId: { type: Schema.Types.ObjectId, ref: 'Party', required: true },
     amount: { type: Number, required: true },
     paymentMethod: {
       type: String,
-      enum: ['PAYPAL', 'STRIPE'],
+      enum: ['PAYPAL', 'STRIPE', 'FREE'],
       required: false,
     },
     status: {
